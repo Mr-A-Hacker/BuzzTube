@@ -132,6 +132,26 @@ def profile():
     subs = Subscription.query.filter_by(subscriber=current_user()).all()
     return render_template('profile.html', user=u, videos=videos, subs=subs)
 
+@app.route('/user/<username>')
+def user_profile(username):
+    u = User.query.filter_by(username=username).first_or_404()
+    videos = Video.query.filter_by(uploader=username).all()
+    return render_template('user_profile.html', user=u, videos=videos)
+
+@app.route('/subscribe_user/<username>', methods=['POST'])
+def subscribe_user(username):
+    if not current_user():
+        return require_login()
+    existing = Subscription.query.filter_by(subscriber=current_user(), creator=username).first()
+    if not existing:
+        sub = Subscription(subscriber=current_user(), creator=username)
+        db.session.add(sub)
+        db.session.commit()
+        flash(f"Subscribed to {username}.", "success")
+    else:
+        flash("Already subscribed.", "info")
+    return redirect(url_for('user_profile', username=username))
+
 
 # ----------------------------
 # Routes: Auth
