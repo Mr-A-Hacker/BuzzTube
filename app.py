@@ -448,6 +448,20 @@ def subscribe_user(username):
         flash("Already subscribed.", "info")
     return redirect(url_for('user_profile', username=username))
 
+@app.before_first_request
+def init_db():
+    db.create_all()
+    if not User.query.filter_by(username='admin').first():
+        admin_user = User(
+            username='admin',
+            password='admin',   # ⚠️ Plain text for demo; use hashing in production
+            premium=True,
+            is_admin=True
+        )
+        db.session.add(admin_user)
+        db.session.commit()
+        print("Admin user created: username='admin', password='admin'")
+
 # ----------------------------
 # App run
 # ----------------------------
