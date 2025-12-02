@@ -123,6 +123,16 @@ def enforce_premium_timer():
                 flash("Free access expired. Please upgrade to BuzzTub Premium.", "danger")
                 return redirect(url_for('login'))
 
+    @app.route('/profile')
+def profile():
+    if not current_user():
+        return require_login()
+    u = User.query.filter_by(username=current_user()).first()
+    videos = Video.query.filter_by(uploader=current_user()).all()
+    subs = Subscription.query.filter_by(subscriber=current_user()).all()
+    return render_template('profile.html', user=u, videos=videos, subs=subs)
+
+
 # ----------------------------
 # Routes: Auth
 # ----------------------------
