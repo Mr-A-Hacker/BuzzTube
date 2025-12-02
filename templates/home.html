@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Search Bar -->
+<div class="row mb-4">
+  <div class="col-md-8 offset-md-2">
+    <form method="GET" action="{{ url_for('home') }}">
+      <div class="input-group">
+        <input type="text" class="form-control" name="q" placeholder="Search BuzzTub videos...">
+        <button class="btn btn-success" type="submit">Search</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Video Grid -->
+<div class="row">
+  {% if videos %}
+    {% for video in videos %}
+      <div class="col-md-4 mb-4">
+        <div class="card shadow-sm">
+          <video width="100%" controls>
+            <source src="{{ url_for('static', filename='uploads/' ~ video.filename) }}" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+          <div class="card-body">
+            <h5 class="card-title">{{ video.title }}</h5>
+            <p class="card-text">Uploaded by {{ video.uploader }}</p>
+            <a href="{{ url_for('video', id=video.id) }}" class="btn btn-primary">View</a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="text-center">No videos yet. Be the first to upload!</p>
+  {% endif %}
+</div>
+
+{% endblock %}
