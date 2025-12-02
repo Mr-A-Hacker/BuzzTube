@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <h2 class="text-center mb-4">💬 BuzzTub Publichat</h2>
+
+    <!-- Chat Feed -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-body" style="max-height:400px; overflow-y:auto;">
+        {% if messages %}
+          {% for msg in messages %}
+            <div class="mb-3 border-bottom pb-2">
+              <strong>{{ msg.user }}</strong>: 
+              {% if msg.text %}
+                {{ msg.text }}
+              {% endif %}
+              {% if msg.image %}
+                <div><img src="{{ url_for('static', filename='uploads/' ~ msg.image) }}" class="img-fluid mt-2"></div>
+              {% endif %}
+              {% if msg.gif %}
+                <div><img src="{{ url_for('static', filename='uploads/' ~ msg.gif) }}" class="img-fluid mt-2"></div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        {% else %}
+          <p>No messages yet. Start the conversation!</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Post Message Form -->
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('publichat') }}" enctype="multipart/form-data">
+          <div class="mb-3">
+            <textarea class="form-control" name="text" rows="2" placeholder="Write a message..."></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="image" class="form-label">Upload Image</label>
+            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+          </div>
+          <div class="mb-3">
+            <label for="gif" class="form-label">Upload GIF</label>
+            <input type="file" class="form-control" id="gif" name="gif" accept="image/gif">
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Post to Publichat</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
