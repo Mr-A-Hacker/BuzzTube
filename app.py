@@ -165,7 +165,6 @@ def logout():
     session.clear()
     flash("Logged out.", "info")
     return redirect(url_for('home'))
-
 # ----------------------------
 # Routes: Home + Upload
 # ----------------------------
@@ -204,6 +203,7 @@ def upload():
 @app.route('/uploads/<path:filename>')
 def uploads(filename):
     return send_from_directory(UPLOAD_DIR, filename)
+
 # ----------------------------
 # Routes: Video page + interactions
 # ----------------------------
@@ -252,7 +252,6 @@ def comment(id):
     else:
         flash("Comment cannot be empty.", "warning")
     return redirect(url_for('video', id=id))
-
 # ----------------------------
 # Routes: Leaderboard
 # ----------------------------
@@ -310,7 +309,9 @@ def admin():
     users = User.query.all()
     reports = Report.query.all()
     return render_template('admin.html', videos=videos, comments=comments_flat, users=users, reports=reports)
-
+# ----------------------------
+# Admin actions
+# ----------------------------
 @app.route('/delete_video/<int:id>', methods=['POST'])
 def delete_video(id):
     if not is_admin():
@@ -448,29 +449,16 @@ def subscribe_user(username):
         flash("Already subscribed.", "info")
     return redirect(url_for('user_profile', username=username))
 
-@app.before_first_request
-def init_db():
-    db.create_all()
-    if not User.query.filter_by(username='admin').first():
-        admin_user = User(
-            username='admin',
-            password='admin',   # ⚠️ Plain text for demo; use hashing in production
-            premium=True,
-            is_admin=True
-        )
-        db.session.add(admin_user)
-        db.session.commit()
-        print("Admin user created: username='admin', password='admin'")
-
 # ----------------------------
 # App run
 # ----------------------------
-if __name__ == "__main__":
-    with app.app_context():
-        # Create tables if they don't exist
-        db.create_all()
+db_initialized = False
 
-        # Ensure an admin user exists
+@app.before_request
+def init_db_once():
+    global db_initialized
+    if not db_initialized:
+        db.create_all()
         if not User.query.filter_by(username='admin').first():
             admin_user = User(
                 username='admin',
@@ -481,7 +469,7 @@ if __name__ == "__main__":
             db.session.add(admin_user)
             db.session.commit()
             print("Admin user created: username='admin', password='admin'")
+        db_initialized = True
 
-    # For local development only:
+if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
-
