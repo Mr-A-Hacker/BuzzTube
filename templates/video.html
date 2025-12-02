@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <!-- Video Player -->
+    <div class="card shadow-sm mb-4">
+      <video width="100%" controls>
+        <source src="{{ url_for('static', filename='uploads/' ~ video.filename) }}" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+      <div class="card-body">
+        <h3 class="card-title">{{ video.title }}</h3>
+        <p class="card-text">Uploaded by {{ video.uploader }}</p>
+        
+        <!-- Subscribe Button -->
+        <form method="POST" action="{{ url_for('subscribe', id=video.id) }}">
+          <button type="submit" class="btn btn-warning">Subscribe</button>
+        </form>
+
+        <!-- Like Button -->
+        <form method="POST" action="{{ url_for('like', id=video.id) }}" class="mt-2">
+          <button type="submit" class="btn btn-success">👍 Like</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Comments Section -->
+    <div class="card shadow-sm">
+      <div class="card-header">
+        <h5>Comments</h5>
+      </div>
+      <div class="card-body">
+        {% if comments %}
+          {% for comment in comments %}
+            <div class="mb-3 border-bottom pb-2">
+              <strong>{{ comment.user }}</strong>: {{ comment.text }}
+            </div>
+          {% endfor %}
+        {% else %}
+          <p>No comments yet. Be the first to comment!</p>
+        {% endif %}
+        
+        <!-- Add Comment Form -->
+        <form method="POST" action="{{ url_for('comment', id=video.id) }}">
+          <div class="mb-3">
+            <textarea class="form-control" name="text" rows="3" placeholder="Write a comment..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Post Comment</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
