@@ -123,36 +123,6 @@ def enforce_premium_timer():
                 flash("Free access expired. Please upgrade to BuzzTub Premium.", "danger")
                 return redirect(url_for('login'))
 
-    @app.route('/profile')
-def profile():
-    if not current_user():
-        return require_login()
-    u = User.query.filter_by(username=current_user()).first()
-    videos = Video.query.filter_by(uploader=current_user()).all()
-    subs = Subscription.query.filter_by(subscriber=current_user()).all()
-    return render_template('profile.html', user=u, videos=videos, subs=subs)
-
-@app.route('/user/<username>')
-def user_profile(username):
-    u = User.query.filter_by(username=username).first_or_404()
-    videos = Video.query.filter_by(uploader=username).all()
-    return render_template('user_profile.html', user=u, videos=videos)
-
-@app.route('/subscribe_user/<username>', methods=['POST'])
-def subscribe_user(username):
-    if not current_user():
-        return require_login()
-    existing = Subscription.query.filter_by(subscriber=current_user(), creator=username).first()
-    if not existing:
-        sub = Subscription(subscriber=current_user(), creator=username)
-        db.session.add(sub)
-        db.session.commit()
-        flash(f"Subscribed to {username}.", "success")
-    else:
-        flash("Already subscribed.", "info")
-    return redirect(url_for('user_profile', username=username))
-
-
 # ----------------------------
 # Routes: Auth
 # ----------------------------
@@ -447,14 +417,57 @@ def mark_report_reviewed(id):
     return redirect(url_for('admin'))
 
 # ----------------------------
+# Routes: Profile (self + public)
+# ----------------------------
+@app.route('/profile')
+def profile():
+    if not current_user():
+        return require_login()
+    u = User.query.filter_by(username=current_user()).first()
+    videos = Video.query.filter_by(uploader=current_user()).all()
+    subs = Subscription.query.filter_by(subscriber=current_user()).all()
+    return render_template('profile.html', user=u, videos=videos, subs=subs)
+
+@app.route('/user/<username>')
+def user_profile(username):
+    u = User.query.filter_by(username=username).first_or_404()
+    videos = Video.query.filter_by(uploader=username).all()
+    return render_template('user_profile.html', user=u, videos=videos)
+
+@app.route('/subscribe_user/<username>', methods=['POST'])
+def subscribe_user(username):
+    if not current_user():
+        return require_login()
+    existing = Subscription.query.filter_by(subscriber=current_user(), creator=username).first()
+    if not existing:
+        sub = Subscription(subscriber=current_user(), creator=username)
+        db.session.add(sub)
+        db.session.commit()
+        flash(f"Subscribed to {username}.", "success")
+    else:
+        flash("Already subscribed.", "info")
+    return redirect(url_for('user_profile', username=username))
+
+# ----------------------------
 # App run
 # ----------------------------
 if __name__ == "__main__":
     with app.app_context():
+        # Create tables if they don't exist
         db.create_all()
+
+        # Ensure an admin user exists
         if not User.query.filter_by(username='admin').first():
-            admin_user = User(username='admin', password='admin', premium=True, is_admin=True)
+            admin_user = User(
+                username='admin',
+                password='admin',   # ⚠️ Plain text for demo; use hashing in production
+                premium=True,
+                is_admin=True
+            )
             db.session.add(admin_user)
             db.session.commit()
-            print("Admin user created: admin / admin")
-    app.run(debug=True)
+            print("Admin user created: username='admin', password='admin'")
+
+    # For local development only:
+    app.run(debug=True, host="0.0.0.0", port=5000)
+
