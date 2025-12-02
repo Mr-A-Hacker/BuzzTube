@@ -30,10 +30,10 @@ db = SQLAlchemy(app)
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    # For demo only: store plain text (upgrade to hashing in real use)
-    password = db.Column(db.String(120), nullable=False)
+    password = db.Column(db.String(120), nullable=False)  # plain text for demo
     premium = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
+    profile_pic = db.Column(db.String(300), nullable=True)
 
 class Video(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -52,7 +52,6 @@ class Comment(db.Model):
 
 class Subscription(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    # Subscriber subscribes to uploader (channel)
     subscriber = db.Column(db.String(80), nullable=False)
     creator = db.Column(db.String(80), nullable=False)
     video_id = db.Column(db.Integer, db.ForeignKey('video.id'), nullable=True)
@@ -65,6 +64,14 @@ class ChatMessage(db.Model):
     image = db.Column(db.String(300), nullable=True)
     gif = db.Column(db.String(300), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Report(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    reporter = db.Column(db.String(80), nullable=False)
+    reported_user = db.Column(db.String(80), nullable=False)
+    reason = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default="Pending")
 
 # ----------------------------
 # Helpers
@@ -90,7 +97,6 @@ def save_upload(file_storage, allowed=('mp4', 'png', 'jpg', 'jpeg', 'gif')):
     if ext not in allowed:
         return None
     path = os.path.join(UPLOAD_DIR, filename)
-    # Avoid collisions
     base, dotext = filename.rsplit('.', 1)
     counter = 1
     while os.path.exists(path):
@@ -105,24 +111,15 @@ def save_upload(file_storage, allowed=('mp4', 'png', 'jpg', 'jpeg', 'gif')):
 # ----------------------------
 @app.before_request
 def enforce_premium_timer():
-    # Allow static files and login/signup freely
     endpoint = request.endpoint or ""
-    free_endpoints = {
-        'login', 'signup', 'logout', 'static', 'home'
-    }
+    free_endpoints = {'login', 'signup', 'logout', 'static', 'home'}
     if endpoint in free_endpoints:
         return
-
     if 'user' in session:
         if not session.get('premium', False):
             login_time = session.get('login_time', 0)
-            # 600 seconds = 10 minutes
-            if time.time() - login_time > 600:
-                # Expire free session
-                session.pop('user', None)
-                session.pop('premium', None)
-                session.pop('login_time', None)
-                session.pop('is_admin', None)
+            if time.time() - login_time > 600:  # 10 minutes
+                session.clear()
                 flash("Free access expired. Please upgrade to BuzzTub Premium.", "danger")
                 return redirect(url_for('login'))
 
@@ -135,12 +132,12 @@ def signup():
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '').strip()
         if not username or not password:
-            flash("Username and password are required.", "warning")
+            flash("Username and password required.", "warning")
             return render_template('signup.html')
         if User.query.filter_by(username=username).first():
             flash("Username already exists.", "danger")
             return render_template('signup.html')
-        user = User(username=username, password=password, premium=False, is_admin=False)
+        user = User(username=username, password=password)
         db.session.add(user)
         db.session.commit()
         flash("Signup successful. Please log in.", "success")
@@ -165,15 +162,12 @@ def login():
 
 @app.route('/logout')
 def logout():
-    session.pop('user', None)
-    session.pop('premium', None)
-    session.pop('login_time', None)
-    session.pop('is_admin', None)
+    session.clear()
     flash("Logged out.", "info")
     return redirect(url_for('home'))
 
 # ----------------------------
-# Routes: Home + Search
+# Routes: Home + Upload
 # ----------------------------
 @app.route('/', methods=['GET'])
 def home():
@@ -186,9 +180,6 @@ def home():
         videos = Video.query.order_by(Video.created_at.desc()).all()
     return render_template('home.html', videos=videos)
 
-# ----------------------------
-# Routes: Upload + Serve uploads
-# ----------------------------
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     if not current_user():
@@ -197,11 +188,11 @@ def upload():
         title = request.form.get('title', '').strip()
         file = request.files.get('file')
         if not title or not file:
-            flash("Title and video file are required.", "warning")
+            flash("Title and video file required.", "warning")
             return render_template('upload.html')
         filename = save_upload(file, allowed=('mp4',))
         if not filename:
-            flash("Invalid file type. Only MP4 is allowed.", "danger")
+            flash("Invalid file type. Only MP4 allowed.", "danger")
             return render_template('upload.html')
         video = Video(title=title, filename=filename, uploader=current_user())
         db.session.add(video)
@@ -212,9 +203,7 @@ def upload():
 
 @app.route('/uploads/<path:filename>')
 def uploads(filename):
-    # Optional direct serving (templates use url_for('static', filename='uploads/...'))
     return send_from_directory(UPLOAD_DIR, filename)
-
 # ----------------------------
 # Routes: Video page + interactions
 # ----------------------------
@@ -229,15 +218,14 @@ def subscribe(id):
     if not current_user():
         return require_login()
     v = Video.query.get_or_404(id)
-    # Subscribe to the creator (uploader)
     existing = Subscription.query.filter_by(subscriber=current_user(), creator=v.uploader).first()
-    if existing:
-        flash("Already subscribed to this creator.", "info")
-    else:
+    if not existing:
         sub = Subscription(subscriber=current_user(), creator=v.uploader, video_id=v.id)
         db.session.add(sub)
         db.session.commit()
         flash(f"Subscribed to {v.uploader}.", "success")
+    else:
+        flash("Already subscribed.", "info")
     return redirect(url_for('video', id=id))
 
 @app.route('/like/<int:id>', methods=['POST'])
@@ -256,32 +244,29 @@ def comment(id):
         return require_login()
     v = Video.query.get_or_404(id)
     text = request.form.get('text', '').strip()
-    if not text:
+    if text:
+        c = Comment(video_id=v.id, user=current_user(), text=text)
+        db.session.add(c)
+        db.session.commit()
+        flash("Comment posted.", "success")
+    else:
         flash("Comment cannot be empty.", "warning")
-        return redirect(url_for('video', id=id))
-    c = Comment(video_id=v.id, user=current_user(), text=text)
-    db.session.add(c)
-    db.session.commit()
-    flash("Comment posted.", "success")
     return redirect(url_for('video', id=id))
 
 # ----------------------------
-# Routes: Leaderboard (top creators by subscribers)
+# Routes: Leaderboard
 # ----------------------------
-@app.route('/leaderboard', methods=['GET'])
+@app.route('/leaderboard')
 def leaderboard():
-    # Aggregate subscribers per creator
-    # Return list of dicts: {'username': creator, 'sub_count': count}
     results = db.session.query(
         Subscription.creator,
         db.func.count(Subscription.id).label('sub_count')
-    ).group_by(Subscription.creator).order_by(db.desc('sub_count')).limit(50).all()
-
+    ).group_by(Subscription.creator).order_by(db.desc('sub_count')).all()
     leaders = [{'username': r[0], 'sub_count': r[1]} for r in results]
     return render_template('leaderboard.html', leaders=leaders)
 
 # ----------------------------
-# Routes: Publichat (chat)
+# Routes: Publichat
 # ----------------------------
 @app.route('/publichat', methods=['GET', 'POST'])
 def publichat():
@@ -291,35 +276,29 @@ def publichat():
         text = request.form.get('text', '').strip() or None
         image_file = request.files.get('image')
         gif_file = request.files.get('gif')
-
-        image_name = save_upload(image_file, allowed=('png', 'jpg', 'jpeg')) if image_file and image_file.filename else None
+        image_name = save_upload(image_file, allowed=('png','jpg','jpeg')) if image_file and image_file.filename else None
         gif_name = save_upload(gif_file, allowed=('gif',)) if gif_file and gif_file.filename else None
-
         msg = ChatMessage(user=current_user(), text=text, image=image_name, gif=gif_name)
         db.session.add(msg)
         db.session.commit()
         flash("Posted to Publichat.", "success")
         return redirect(url_for('publichat'))
-
     messages = ChatMessage.query.order_by(ChatMessage.created_at.asc()).all()
     return render_template('publichat.html', messages=messages)
 
 # ----------------------------
-# Routes: Admin dashboard and controls
+# Routes: Admin dashboard
 # ----------------------------
-@app.route('/admin', methods=['GET'])
+@app.route('/admin')
 def admin():
     if not current_user() or not is_admin():
         flash("Admin access required.", "danger")
         return redirect(url_for('home'))
-    videos = Video.query.order_by(Video.created_at.desc()).all()
+    videos = Video.query.all()
     comments = (
         db.session.query(Comment, Video.title.label('video_title'))
-        .join(Video, Video.id == Comment.video_id)
-        .order_by(Comment.created_at.desc())
-        .all()
+        .join(Video, Video.id == Comment.video_id).all()
     )
-    # Flatten for template convenience
     comments_flat = [
         type('CView', (), {
             'id': c.Comment.id,
@@ -328,23 +307,15 @@ def admin():
             'video_title': c.video_title
         }) for c in comments
     ]
-    users = User.query.order_by(User.username.asc()).all()
-    return render_template('admin.html', videos=videos, comments=comments_flat, users=users)
+    users = User.query.all()
+    reports = Report.query.all()
+    return render_template('admin.html', videos=videos, comments=comments_flat, users=users, reports=reports)
 
 @app.route('/delete_video/<int:id>', methods=['POST'])
 def delete_video(id):
-    if not current_user() or not is_admin():
-        flash("Admin access required.", "danger")
+    if not is_admin():
         return redirect(url_for('home'))
     v = Video.query.get_or_404(id)
-    # Remove file
-    try:
-        path = os.path.join(UPLOAD_DIR, v.filename)
-        if os.path.exists(path):
-            os.remove(path)
-    except Exception:
-        pass
-    # Remove related comments/subscriptions
     Comment.query.filter_by(video_id=v.id).delete()
     Subscription.query.filter_by(video_id=v.id).delete()
     db.session.delete(v)
@@ -354,8 +325,7 @@ def delete_video(id):
 
 @app.route('/delete_comment/<int:id>', methods=['POST'])
 def delete_comment(id):
-    if not current_user() or not is_admin():
-        flash("Admin access required.", "danger")
+    if not is_admin():
         return redirect(url_for('home'))
     c = Comment.query.get_or_404(id)
     db.session.delete(c)
@@ -365,8 +335,7 @@ def delete_comment(id):
 
 @app.route('/grant_premium/<int:id>', methods=['POST'])
 def grant_premium(id):
-    if not current_user() or not is_admin():
-        flash("Admin access required.", "danger")
+    if not is_admin():
         return redirect(url_for('home'))
     u = User.query.get_or_404(id)
     u.premium = True
@@ -376,30 +345,76 @@ def grant_premium(id):
 
 @app.route('/kick_user/<int:id>', methods=['POST'])
 def kick_user(id):
-    if not current_user() or not is_admin():
-        flash("Admin access required.", "danger")
+    if not is_admin():
         return redirect(url_for('home'))
     u = User.query.get_or_404(id)
-    # Simple "kick": if the kicked user is currently the session user, clear session
-    # In real-world, you'd track active sessions or set a banned flag
     if u.username == current_user():
         session.clear()
     flash(f"Kicked {u.username}.", "warning")
     return redirect(url_for('admin'))
 
 # ----------------------------
-# Bootstrap initial admin (optional)
+# Routes: Settings (profile pic, password)
 # ----------------------------
-@app.cli.command("create-admin")
-def create_admin():
-    """Create a default admin user: admin / admin"""
-    if not User.query.filter_by(username='admin').first():
-        admin_user = User(username='admin', password='admin', premium=True, is_admin=True)
-        db.session.add(admin_user)
+@app.route('/settings')
+def settings():
+    if not current_user():
+        return require_login()
+    u = User.query.filter_by(username=current_user()).first()
+    return render_template('settings.html', user=u)
+
+@app.route('/update_pic', methods=['POST'])
+def update_pic():
+    if not current_user():
+        return require_login()
+    file = request.files.get('pic')
+    filename = save_upload(file, allowed=('png','jpg','jpeg'))
+    if filename:
+        u = User.query.filter_by(username=current_user()).first()
+        u.profile_pic = filename
         db.session.commit()
-        print("Admin user created: admin / admin")
+        flash("Profile picture updated!", "success")
+    return redirect(url_for('settings'))
+
+@app.route('/change_password', methods=['POST'])
+def change_password():
+    if not current_user():
+        return require_login()
+    old = request.form.get('old')
+    new = request.form.get('new')
+    u = User.query.filter_by(username=current_user(), password=old).first()
+    if u:
+        u.password = new
+        db.session.commit()
+        flash("Password changed successfully!", "success")
     else:
-        print("Admin user already exists.")
+        flash("Old password incorrect.", "danger")
+    return redirect(url_for('settings'))
+
+# ----------------------------
+# Routes: Reports
+# ----------------------------
+@app.route('/report/<username>', methods=['POST'])
+def report_user(username):
+    if not current_user():
+        return require_login()
+    reason = request.form.get('reason', '').strip()
+    if reason:
+        report = Report(reporter=current_user(), reported_user=username, reason=reason)
+        db.session.add(report)
+        db.session.commit()
+        flash("User reported. Admin will review.", "info")
+    return redirect(url_for('home'))
+
+@app.route('/mark_report_reviewed/<int:id>', methods=['POST'])
+def mark_report_reviewed(id):
+    if not is_admin():
+        return redirect(url_for('home'))
+    r = Report.query.get_or_404(id)
+    r.status = "Reviewed"
+    db.session.commit()
+    flash("Report marked as reviewed.", "info")
+    return redirect(url_for('admin'))
 
 # ----------------------------
 # App run
@@ -407,7 +422,6 @@ def create_admin():
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-        # Ensure an admin exists (optional auto-create)
         if not User.query.filter_by(username='admin').first():
             admin_user = User(username='admin', password='admin', premium=True, is_admin=True)
             db.session.add(admin_user)
