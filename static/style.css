@@ -1,48 +1,59 @@
-/* General layout */
+/* === Base Layout === */
 body {
-  font-family: 'Segoe UI', Arial, sans-serif;
-  background: #0d0d0d;
-  color: #f0f0f0;
   margin: 0;
   padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: radial-gradient(circle at top left, #0d0d0d, #000000);
+  color: #e0e0e0;
 }
 
 .container {
-  width: 80%;
+  width: 90%;
+  max-width: 1000px;
   margin: 2rem auto;
 }
 
-/* Neon text effect */
+/* === Neon Text === */
 .neon-text {
   color: #39ff14;
-  text-shadow: 0 0 5px #39ff14, 0 0 10px #39ff14, 0 0 20px #39ff14;
+  text-shadow:
+    0 0 5px #39ff14,
+    0 0 10px #39ff14,
+    0 0 20px #39ff14,
+    0 0 40px #39ff14;
 }
 
 .big-title {
-  font-size: 2.5rem;
+  font-size: 2.8rem;
   margin-bottom: 1rem;
+  text-align: center;
 }
 
-/* Cards */
+/* === Cards === */
 .card {
-  background: rgba(20, 20, 20, 0.9);
+  background: rgba(20, 20, 20, 0.85);
   border-radius: 12px;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 0 15px rgba(57, 255, 20, 0.3);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 0 20px rgba(57, 255, 20, 0.2);
+  transition: transform 0.2s ease;
 }
 
-/* Buttons */
+.card:hover {
+  transform: scale(1.02);
+}
+
+/* === Buttons === */
 .btn {
   display: inline-block;
   background: #39ff14;
   color: #0d0d0d;
-  padding: 0.5rem 1rem;
-  margin: 0.3rem;
+  padding: 0.6rem 1.2rem;
+  margin: 0.5rem 0.3rem;
   border-radius: 8px;
-  text-decoration: none;
   font-weight: bold;
-  transition: 0.3s;
+  text-decoration: none;
+  transition: 0.3s ease;
 }
 
 .btn:hover {
@@ -62,38 +73,47 @@ body {
   box-shadow: 0 0 10px #ff1744;
 }
 
-/* Navbar */
+/* === Navbar === */
 .navbar {
   background: #111;
   padding: 1rem;
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 1rem;
   box-shadow: 0 0 10px #39ff14;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 .nav-link {
-  color: #f0f0f0;
+  color: #e0e0e0;
   text-decoration: none;
   font-weight: bold;
-  transition: 0.3s;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: 0.3s ease;
 }
 
 .nav-link:hover {
-  color: #39ff14;
-  text-shadow: 0 0 5px #39ff14;
+  background: #39ff14;
+  color: #0d0d0d;
+  box-shadow: 0 0 10px #39ff14;
 }
 
-/* Flash messages */
+/* === Flash Messages === */
 .flash-messages ul {
   list-style: none;
   padding: 0;
+  margin: 1rem 0;
 }
 
 .flash {
-  margin: 0.5rem 0;
-  padding: 0.5rem;
+  padding: 0.75rem;
   border-radius: 6px;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
 }
 
 .flash.success { background: #39ff14; color: #0d0d0d; }
@@ -101,14 +121,53 @@ body {
 .flash.danger  { background: #ff1744; color: #fff; }
 .flash.info    { background: #2196f3; color: #fff; }
 
-/* Lists */
-.video-list, .comment-list, .chat-list, .leaderboard-list, .subscription-list, .user-list, .report-list {
-  list-style: none;
-  padding: 0;
+/* === Forms === */
+form label {
+  display: block;
+  margin-top: 1rem;
+  font-weight: bold;
 }
 
-.video-item, .comment-item, .chat-item, .leaderboard-item, .subscription-item, .user-item, .report-item {
-  margin: 0.5rem 0;
-  padding: 0.5rem;
+form input[type="text"],
+form input[type="password"],
+form textarea,
+form select {
+  width: 100%;
+  padding: 0.6rem;
+  margin-top: 0.3rem;
+  border: none;
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: #e0e0e0;
+}
+
+form textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* === Lists === */
+ul {
+  padding-left: 0;
+}
+
+.video-list li,
+.comment-list li,
+.chat-list li,
+.leaderboard-list li,
+.subscription-list li,
+.user-list li,
+.report-list li {
+  list-style: none;
+  padding: 0.75rem;
   border-bottom: 1px solid #333;
+  margin-bottom: 0.5rem;
+}
+
+/* === Meta Text === */
+.meta {
+  font-size: 0.9rem;
+  color: #aaa;
+  display: block;
+  margin-top: 0.3rem;
 }
