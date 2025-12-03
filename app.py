@@ -121,6 +121,22 @@ def premium_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+    @app.route("/")
+@premium_required
+def home():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM videos ORDER BY id DESC")
+    videos = cur.fetchall()
+
+    # Get current user's premium status
+    cur.execute("SELECT premium FROM users WHERE username=?", (session["user"],))
+    user = cur.fetchone()
+    conn.close()
+
+    # Pass premium flag into template
+    return render_template("home.html", videos=videos, premium=user["premium"])
+
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
