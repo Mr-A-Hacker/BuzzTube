@@ -307,7 +307,7 @@ def like_video(id):
         flash("Video not found.", "danger")
         return redirect(url_for("home"))
 
-    # Prevent self-like
+    # 🚫 Prevent self-like
     if video["uploader"] == session["user"]:
         conn.close()
         flash("You cannot like your own video.", "warning")
@@ -331,6 +331,7 @@ def like_video(id):
     conn.commit()
     conn.close()
     return redirect(url_for("video", id=id))
+
 
 
 @app.route("/follow/<string:username>", methods=["POST"])
