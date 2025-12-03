@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ v['title'] }} - BuzzTub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>{{ v['title'] }}</h1>
+        <p>Uploaded by: {{ v['uploader'] }}</p>
+    </header>
+
+    <main>
+        <!-- Video player -->
+        {% if v['filepath'] %}
+            <video width="640" height="360" controls>
+                <source src="{{ v['filepath'] }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        {% endif %}
+
+        <!-- Like/Unlike button -->
+        <section class="likes">
+            <p>{{ v['likes'] }} Likes</p>
+            <form action="{{ url_for('like_video', id=v['id']) }}" method="post">
+                {% set user_liked = false %}
+                {% for like in get_db().execute("SELECT * FROM likes WHERE video_id=? AND user=?", (v['id'], session['user'])).fetchall() %}
+                    {% set user_liked = true %}
+                {% endfor %}
+
+                {% if v['uploader'] == session['user'] %}
+                    <button type="submit" disabled>You cannot like your own video</button>
+                {% elif user_liked %}
+                    <button type="submit">Unlike</button>
+                {% else %}
+                    <button type="submit">Like</button>
+                {% endif %}
+            </form>
+        </section>
+
+        <!-- Comments -->
+        <section class="comments">
+            <h2>Comments</h2>
+            <ul>
+                {% for c in comments %}
+                    <li><strong>{{ c['user'] }}:</strong> {{ c['text'] }}</li>
+                {% endfor %}
+            </ul>
+
+            <form action="{{ url_for('video', id=v['id']) }}" method="post">
+                <textarea name="text" placeholder="Add a comment..." required></textarea>
+                <button type="submit">Post Comment</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <a href="{{ url_for('home') }}">Back to Home</a>
+    </footer>
+</body>
+</html>
