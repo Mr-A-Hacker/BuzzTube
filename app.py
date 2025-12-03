@@ -1,10 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-import sqlite3
-import os
+import sqlite3, os, time
+from functools import wraps
 
 app = Flask(__name__)
-app.secret_key = "supersecretkey"  # replace with env var in production
-
+app.secret_key = "supersecretkey"   # replace with env var in production
 DB_FILE = "buzz.db"
 
 def get_db():
@@ -16,7 +15,7 @@ def init_db():
     conn = get_db()
     cur = conn.cursor()
 
-    # Users table
+    # Users
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,7 +25,7 @@ def init_db():
         )
     """)
 
-    # Videos table
+    # Videos
     cur.execute("""
         CREATE TABLE IF NOT EXISTS videos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,7 +35,7 @@ def init_db():
         )
     """)
 
-    # Comments table
+    # Comments
     cur.execute("""
         CREATE TABLE IF NOT EXISTS comments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -47,7 +46,7 @@ def init_db():
         )
     """)
 
-    # Messages table (Publichat)
+    # Messages (Publichat)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -56,7 +55,7 @@ def init_db():
         )
     """)
 
-    # Reports table (Admin)
+    # Reports (Admin)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS reports (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -70,8 +69,32 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Run init_db at startup
+# Initialize DB at startup
 init_db()
+def premium_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "user" not in session:
+            flash("You must log in first.", "warning")
+            return redirect(url_for("login"))
+
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("SELECT premium FROM users WHERE username=?", (session["user"],))
+        user = cur.fetchone()
+        conn.close()
+
+        # Non-premium timeout check
+        if user and user["premium"] == 0:
+            start = session.get("login_time", 0)
+            now = int(time.time())
+            if now - start > 600:  # 600 seconds = 10 minutes
+                session.clear()
+                flash("Your free 10‑minute session expired. Upgrade to premium!", "danger")
+                return redirect(url_for("login"))
+
+        return f(*args, **kwargs)
+    return decorated_function
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
@@ -107,7 +130,8 @@ def login():
 
         if user:
             session["user"] = user["username"]
-            session["admin"] = (user["username"] == "admin")  # simple admin check
+            session["admin"] = (user["username"] == "admin")
+            session["login_time"] = int(time.time())
             flash("Login successful!", "success")
             return redirect(url_for("home"))
         else:
@@ -121,11 +145,8 @@ def logout():
     flash("Logged out successfully.", "info")
     return redirect(url_for("login"))
 @app.route("/")
+@premium_required
 def home():
-    if "user" not in session:
-        flash("You must log in or sign up to access this page.", "warning")
-        return redirect(url_for("login"))
-
     conn = get_db()
     cur = conn.cursor()
     cur.execute("SELECT * FROM videos ORDER BY id DESC")
@@ -135,10 +156,8 @@ def home():
 
 
 @app.route("/video/<int:id>", methods=["GET", "POST"])
+@premium_required
 def video(id):
-    if "user" not in session:
-        return redirect(url_for("login"))
-
     conn = get_db()
     cur = conn.cursor()
 
@@ -158,10 +177,8 @@ def video(id):
 
 
 @app.route("/upload", methods=["GET", "POST"])
+@premium_required
 def upload():
-    if "user" not in session:
-        return redirect(url_for("login"))
-
     if request.method == "POST":
         title = request.form["title"]
         conn = get_db()
@@ -172,11 +189,11 @@ def upload():
         conn.close()
         flash("Video uploaded successfully!", "success")
         return redirect(url_for("home"))
-
     return render_template("upload.html")
 
 
 @app.route("/leaderboard")
+@premium_required
 def leaderboard():
     conn = get_db()
     cur = conn.cursor()
@@ -187,10 +204,8 @@ def leaderboard():
 
 
 @app.route("/publichat", methods=["GET", "POST"])
+@premium_required
 def publichat():
-    if "user" not in session:
-        return redirect(url_for("login"))
-
     conn = get_db()
     cur = conn.cursor()
 
@@ -208,10 +223,8 @@ def publichat():
 
 
 @app.route("/profile")
+@premium_required
 def profile():
-    if "user" not in session:
-        return redirect(url_for("login"))
-
     conn = get_db()
     cur = conn.cursor()
     cur.execute("SELECT * FROM videos WHERE uploader=?", (session["user"],))
@@ -225,16 +238,13 @@ def profile():
 
 
 @app.route("/settings", methods=["GET", "POST"])
+@premium_required
 def settings():
-    if "user" not in session:
-        return redirect(url_for("login"))
-
     if request.method == "POST":
         flash("Settings updated!", "success")
         return redirect(url_for("profile"))
-
     return render_template("settings.html")
-@app.route("/admin", methods=["GET", "POST"])
+@app.route("/admin")
 def admin_dashboard():
     if not session.get("admin"):
         flash("Admin access required.", "danger")
