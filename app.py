@@ -1,5 +1,4 @@
-
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 import sqlite3, os, time
 from functools import wraps
 import werkzeug
@@ -42,7 +41,7 @@ def init_db():
         )
     """)
 
-    # Likes (new table to prevent duplicates)
+    # Likes
     cur.execute("""
         CREATE TABLE IF NOT EXISTS likes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -58,8 +57,7 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             video_id INTEGER,
             user TEXT,
-            text TEXT,
-            FOREIGN KEY(video_id) REFERENCES videos(id)
+            text TEXT
         )
     """)
 
@@ -97,6 +95,8 @@ def init_db():
 
 # Initialize DB at startup
 init_db()
+
+# Premium decorator
 def premium_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -120,24 +120,6 @@ def premium_required(f):
 
         return f(*args, **kwargs)
     return decorated_function
-
-    @app.route("/")
-@premium_required
-def home():
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM videos ORDER BY id DESC")
-    videos = cur.fetchall()
-
-    # Get current user's premium status
-    cur.execute("SELECT premium FROM users WHERE username=?", (session["user"],))
-    user = cur.fetchone()
-    conn.close()
-
-    # Pass premium flag into template
-    return render_template("home.html", videos=videos, premium=user["premium"])
-
-
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
@@ -180,13 +162,7 @@ def login():
         else:
             flash("Invalid credentials.", "danger")
 
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT username FROM users")
-    all_users = cur.fetchall()
-    conn.close()
-
-    return render_template("login.html", users=all_users)
+    return render_template("login.html")
 
 
 @app.route("/logout")
@@ -194,6 +170,8 @@ def logout():
     session.clear()
     flash("Logged out successfully.", "info")
     return redirect(url_for("login"))
+
+
 @app.route("/")
 @premium_required
 def home():
@@ -201,10 +179,12 @@ def home():
     cur = conn.cursor()
     cur.execute("SELECT * FROM videos ORDER BY id DESC")
     videos = cur.fetchall()
+
+    cur.execute("SELECT premium FROM users WHERE username=?", (session["user"],))
+    user = cur.fetchone()
     conn.close()
-    return render_template("home.html", videos=videos)
 
-
+    return render_template("home.html", videos=videos, premium=user["premium"])
 @app.route("/video/<int:id>", methods=["GET", "POST"])
 @premium_required
 def video(id):
@@ -221,9 +201,12 @@ def video(id):
     v = cur.fetchone()
     cur.execute("SELECT * FROM comments WHERE video_id=?", (id,))
     comments = cur.fetchall()
+
+    cur.execute("SELECT premium FROM users WHERE username=?", (session["user"],))
+    user = cur.fetchone()
     conn.close()
 
-    return render_template("video.html", v=v, comments=comments)
+    return render_template("video.html", v=v, comments=comments, premium=user["premium"])
 
 
 @app.route("/upload", methods=["GET", "POST"])
@@ -238,7 +221,6 @@ def upload():
             save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
             file.save(save_path)
 
-            # Store the web path, not the filesystem path
             web_path = url_for("static", filename=f"uploads/{filename}")
 
             conn = get_db()
@@ -255,6 +237,7 @@ def upload():
 
     return render_template("upload.html")
 
+
 @app.route("/leaderboard")
 @premium_required
 def leaderboard():
@@ -268,14 +251,6 @@ def leaderboard():
     likes = [v["likes"] for v in videos]
 
     return render_template("leaderboard.html", titles=titles, likes=likes, videos=videos)
-
-
-    # Pass titles and likes separately for chart rendering
-    titles = [v["title"] for v in videos]
-    likes = [v["likes"] for v in videos]
-
-    return render_template("leaderboard.html", titles=titles, likes=likes, videos=videos)
-
 
 
 @app.route("/publichat", methods=["GET", "POST"])
@@ -306,11 +281,9 @@ def profile():
     videos = cur.fetchall()
     cur.execute("SELECT * FROM users WHERE username=?", (session["user"],))
     user = cur.fetchone()
-    conn.close()
-
-    cur = get_db().cursor()
     cur.execute("SELECT following FROM follows WHERE follower=?", (session["user"],))
     subs = cur.fetchall()
+    conn.close()
 
     return render_template("profile.html", user=user, videos=videos, subs=subs)
 
@@ -327,8 +300,6 @@ def settings():
 def like_video(id):
     conn = get_db()
     cur = conn.cursor()
-
-    # Get video info
     cur.execute("SELECT * FROM videos WHERE id=?", (id,))
     video = cur.fetchone()
     if not video:
@@ -360,34 +331,6 @@ def like_video(id):
     conn.commit()
     conn.close()
     return redirect(url_for("video", id=id))
-
-
-
-@app.route("/follow/<string:username>", methods=["POST"])
-@premium_required
-def follow_user(username):
-    conn = get_db()
-    cur = conn.cursor()
-
-    # Prevent following yourself
-    if username == session["user"]:
-        conn.close()
-        flash("You cannot follow yourself.", "warning")
-        return redirect(url_for("profile"))
-
-    # Prevent duplicate follows
-    cur.execute("SELECT * FROM follows WHERE follower=? AND following=?", (session["user"], username))
-    existing = cur.fetchone()
-
-    if existing:
-        flash(f"You already follow {username}.", "info")
-    else:
-        cur.execute("INSERT INTO follows (follower, following) VALUES (?, ?)", (session["user"], username))
-        conn.commit()
-        flash(f"You are now following {username}!", "success")
-
-    conn.close()
-    return redirect(url_for("profile"))
 @app.route("/admin")
 def admin_dashboard():
     if not session.get("admin"):
@@ -414,8 +357,6 @@ def admin_dashboard():
                            users=users,
                            reports=reports,
                            messages=messages)
-
-
 @app.route("/admin/delete_video/<int:id>", methods=["POST"])
 def admin_delete_video(id):
     if not session.get("admin"):
