@@ -1,54 +1,49 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-8">
-    <!-- Video Player -->
-    <div class="card shadow-sm mb-4">
-      <video width="100%" controls>
-        <source src="{{ url_for('static', filename='uploads/' ~ video.filename) }}" type="video/mp4">
-        Your browser does not support the video tag.
-      </video>
-      <div class="card-body">
-        <h3 class="card-title">{{ video.title }}</h3>
-        <p class="card-text">Uploaded by {{ video.uploader }}</p>
-        
-        <!-- Subscribe Button -->
-        <form method="POST" action="{{ url_for('subscribe', id=video.id) }}">
-          <button type="submit" class="btn btn-warning">Subscribe</button>
-        </form>
 
-        <!-- Like Button -->
-        <form method="POST" action="{{ url_for('like', id=video.id) }}" class="mt-2">
-          <button type="submit" class="btn btn-success">👍 Like</button>
-        </form>
-      </div>
-    </div>
+<div class="container">
+  <div class="card">
+    <h1 class="neon-text">{{ video.title }}</h1>
+    <p>Uploaded by <a href="{{ url_for('user_profile', username=video.uploader) }}">{{ video.uploader }}</a></p>
 
-    <!-- Comments Section -->
-    <div class="card shadow-sm">
-      <div class="card-header">
-        <h5>Comments</h5>
-      </div>
-      <div class="card-body">
-        {% if comments %}
-          {% for comment in comments %}
-            <div class="mb-3 border-bottom pb-2">
-              <strong>{{ comment.user }}</strong>: {{ comment.text }}
-            </div>
-          {% endfor %}
-        {% else %}
-          <p>No comments yet. Be the first to comment!</p>
-        {% endif %}
-        
-        <!-- Add Comment Form -->
-        <form method="POST" action="{{ url_for('comment', id=video.id) }}">
-          <div class="mb-3">
-            <textarea class="form-control" name="text" rows="3" placeholder="Write a comment..." required></textarea>
-          </div>
-          <button type="submit" class="btn btn-primary">Post Comment</button>
-        </form>
-      </div>
-    </div>
+    <!-- Video player -->
+    <video width="100%" controls>
+      <source src="{{ url_for('uploads', filename=video.filename) }}" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+
+    <!-- Likes -->
+    <p>Likes: {{ video.likes }}</p>
+    <form method="post" action="{{ url_for('like', id=video.id) }}">
+      <button type="submit" class="btn">👍 Like</button>
+    </form>
+  </div>
+
+  <!-- Comments -->
+  <div class="card">
+    <h2 class="neon-text">Comments</h2>
+    {% if comments %}
+      <ul>
+        {% for comment in comments %}
+          <li>
+            <strong>{{ comment.user }}</strong> ({{ comment.created_at.strftime("%Y-%m-%d %H:%M") }}):  
+            {{ comment.text }}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No comments yet. Be the first to comment!</p>
+    {% endif %}
+
+    {% if session.get('user') %}
+      <form method="post" action="{{ url_for('comment', id=video.id) }}">
+        <textarea name="text" placeholder="Write a comment..." required></textarea>
+        <button type="submit" class="btn">Post Comment</button>
+      </form>
+    {% else %}
+      <p><a href="{{ url_for('login') }}">Log in</a> to post a comment.</p>
+    {% endif %}
   </div>
 </div>
+
 {% endblock %}
