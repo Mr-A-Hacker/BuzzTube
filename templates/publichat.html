@@ -1,52 +1,54 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-8">
-    <h2 class="text-center mb-4">💬 BuzzTub Publichat</h2>
 
-    <!-- Chat Feed -->
-    <div class="card shadow-sm mb-4">
-      <div class="card-body" style="max-height:400px; overflow-y:auto;">
-        {% if messages %}
-          {% for msg in messages %}
-            <div class="mb-3 border-bottom pb-2">
-              <strong>{{ msg.user }}</strong>: 
-              {% if msg.text %}
-                {{ msg.text }}
-              {% endif %}
-              {% if msg.image %}
-                <div><img src="{{ url_for('static', filename='uploads/' ~ msg.image) }}" class="img-fluid mt-2"></div>
-              {% endif %}
-              {% if msg.gif %}
-                <div><img src="{{ url_for('static', filename='uploads/' ~ msg.gif) }}" class="img-fluid mt-2"></div>
-              {% endif %}
-            </div>
-          {% endfor %}
-        {% else %}
-          <p>No messages yet. Start the conversation!</p>
-        {% endif %}
-      </div>
-    </div>
+<div class="container">
+  <h1 class="neon-text">Publichat</h1>
 
-    <!-- Post Message Form -->
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <form method="POST" action="{{ url_for('publichat') }}" enctype="multipart/form-data">
-          <div class="mb-3">
-            <textarea class="form-control" name="text" rows="2" placeholder="Write a message..."></textarea>
-          </div>
-          <div class="mb-3">
-            <label for="image" class="form-label">Upload Image</label>
-            <input type="file" class="form-control" id="image" name="image" accept="image/*">
-          </div>
-          <div class="mb-3">
-            <label for="gif" class="form-label">Upload GIF</label>
-            <input type="file" class="form-control" id="gif" name="gif" accept="image/gif">
-          </div>
-          <button type="submit" class="btn btn-primary w-100">Post to Publichat</button>
-        </form>
-      </div>
-    </div>
+  <!-- Post form -->
+  {% if session.get('user') %}
+    <form method="post" enctype="multipart/form-data" class="card">
+      <label for="text">Message</label>
+      <textarea id="text" name="text" placeholder="Say something..."></textarea>
+
+      <label for="image">Attach Image</label>
+      <input type="file" id="image" name="image" accept="image/png,image/jpeg">
+
+      <label for="gif">Attach GIF</label>
+      <input type="file" id="gif" name="gif" accept="image/gif">
+
+      <button type="submit" class="btn">Post</button>
+    </form>
+  {% else %}
+    <p><a href="{{ url_for('login') }}">Log in</a> to post messages.</p>
+  {% endif %}
+
+  <!-- Messages feed -->
+  <div class="card">
+    <h2 class="neon-text">Community Feed</h2>
+    {% if messages %}
+      <ul>
+        {% for msg in messages %}
+          <li style="margin-bottom:1rem;">
+            <strong>{{ msg.user }}</strong> 
+            <span style="font-size:0.8rem; color:#aaa;">
+              {{ msg.created_at.strftime("%Y-%m-%d %H:%M") }}
+            </span><br>
+            {% if msg.text %}
+              <p>{{ msg.text }}</p>
+            {% endif %}
+            {% if msg.image %}
+              <img src="{{ url_for('uploads', filename=msg.image) }}" alt="Image" style="max-width:300px; display:block; margin-top:0.5rem;">
+            {% endif %}
+            {% if msg.gif %}
+              <img src="{{ url_for('uploads', filename=msg.gif) }}" alt="GIF" style="max-width:300px; display:block; margin-top:0.5rem;">
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No messages yet. Start the conversation!</p>
+    {% endif %}
   </div>
 </div>
+
 {% endblock %}
