@@ -244,10 +244,15 @@ def upload():
 def leaderboard():
     conn = get_db()
     cur = conn.cursor()
-    # Get top 10 videos by likes
-    cur.execute("SELECT title, likes FROM videos ORDER BY likes DESC LIMIT 10")
+    cur.execute("SELECT title, likes FROM videos ORDER BY likes DESC LIMIT 5")
     videos = cur.fetchall()
     conn.close()
+
+    titles = [v["title"] for v in videos]
+    likes = [v["likes"] for v in videos]
+
+    return render_template("leaderboard.html", titles=titles, likes=likes, videos=videos)
+
 
     # Pass titles and likes separately for chart rendering
     titles = [v["title"] for v in videos]
