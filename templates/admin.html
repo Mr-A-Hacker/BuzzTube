@@ -85,6 +85,24 @@
       {% endfor %}
     </ul>
   </div>
+
+  <!-- Publichat Messages Section -->
+  <div class="card">
+    <h2 class="neon-text">Publichat Messages</h2>
+    <ul class="chat-list">
+      {% for m in messages %}
+        <li>
+          <strong>{{ m['user'] }}</strong>: {{ m['message'] }}
+          <span class="meta">Message #{{ m['id'] }}</span>
+          <form action="{{ url_for('admin_delete_message', id=m['id']) }}" method="POST" style="display:inline;">
+            <button type="submit" class="btn danger">Delete</button>
+          </form>
+        </li>
+      {% else %}
+        <li class="meta">No messages found.</li>
+      {% endfor %}
+    </ul>
+  </div>
 </div>
 
 {% endblock %}
