@@ -1,38 +1,43 @@
 {% extends "base.html" %}
 {% block content %}
 
-<!-- Search Bar -->
-<div class="row mb-4">
-  <div class="col-md-8 offset-md-2">
-    <form method="GET" action="{{ url_for('home') }}">
-      <div class="input-group">
-        <input type="text" class="form-control" name="q" placeholder="Search BuzzTub videos...">
-        <button class="btn btn-success" type="submit">Search</button>
-      </div>
-    </form>
-  </div>
-</div>
+<div class="container">
+  <h1 class="neon-text">BuzzTub Home</h1>
 
-<!-- Video Grid -->
-<div class="row">
+  <!-- Search bar -->
+  <form method="get" action="{{ url_for('home') }}">
+    <input type="text" name="q" placeholder="Search videos or creators..." value="{{ request.args.get('q','') }}">
+    <button type="submit" class="btn">Search</button>
+  </form>
+
+  <!-- Upload button -->
+  {% if session.get('user') %}
+    <div style="margin:1rem 0;">
+      <a href="{{ url_for('upload') }}" class="btn">Upload Video</a>
+    </div>
+  {% endif %}
+
+  <!-- Video list -->
   {% if videos %}
-    {% for video in videos %}
-      <div class="col-md-4 mb-4">
-        <div class="card shadow-sm">
+    <div class="video-grid">
+      {% for video in videos %}
+        <div class="card">
+          <h2>{{ video.title }}</h2>
+          <p>Uploaded by <a href="{{ url_for('user_profile', username=video.uploader) }}">{{ video.uploader }}</a></p>
           <video width="100%" controls>
-            <source src="{{ url_for('static', filename='uploads/' ~ video.filename) }}" type="video/mp4">
+            <source src="{{ url_for('uploads', filename=video.filename) }}" type="video/mp4">
             Your browser does not support the video tag.
           </video>
-          <div class="card-body">
-            <h5 class="card-title">{{ video.title }}</h5>
-            <p class="card-text">Uploaded by {{ video.uploader }}</p>
-            <a href="{{ url_for('video', id=video.id) }}" class="btn btn-primary">View</a>
-          </div>
+          <p>Likes: {{ video.likes }}</p>
+          <form method="post" action="{{ url_for('like', id=video.id) }}">
+            <button type="submit" class="btn">👍 Like</button>
+          </form>
+          <a href="{{ url_for('video', id=video.id) }}" class="btn">View & Comment</a>
         </div>
-      </div>
-    {% endfor %}
+      {% endfor %}
+    </div>
   {% else %}
-    <p class="text-center">No videos yet. Be the first to upload!</p>
+    <p>No videos yet. Be the first to upload!</p>
   {% endif %}
 </div>
 
