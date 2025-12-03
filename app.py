@@ -8,7 +8,6 @@ app.secret_key = "supersecretkey"   # replace with env var in production
 DB_FILE = "buzz.db"
 
 UPLOAD_FOLDER = "static/uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 def get_db():
