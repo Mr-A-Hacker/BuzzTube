@@ -197,33 +197,38 @@ def video(id):
 
 
 @app.route("/upload", methods=["GET", "POST"])
-@premium_required
 def upload():
     if request.method == "POST":
         title = request.form["title"]
         file = request.files["file"]
 
         if file and file.filename != "":
-            filename = werkzeug.utils.secure_filename(file.filename)
-            save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-            file.save(save_path)
+            try:
+                # Attempt to upload to Cloudinary
+                result = cloudinary.uploader.upload(file, resource_type="video")
+                web_path = result["secure_url"]
 
-            # Store the web path, not the filesystem path
-            web_path = url_for("static", filename=f"uploads/{filename}")
+                # Save Cloudinary URL in DB
+                conn = get_db()
+                cur = conn.cursor()
+                cur.execute("INSERT INTO videos (title, uploader, filepath) VALUES (?, ?, ?)",
+                            (title, session["user"], web_path))
+                conn.commit()
+                conn.close()
 
-            conn = get_db()
-            cur = conn.cursor()
-            cur.execute("INSERT INTO videos (title, uploader, filepath) VALUES (?, ?, ?)",
-                        (title, session["user"], web_path))
-            conn.commit()
-            conn.close()
+                flash("Video uploaded successfully!", "success")
+                return redirect(url_for("home"))
 
-            flash("Video uploaded successfully!", "success")
-            return redirect(url_for("home"))
+            except Exception as e:
+                # If Cloudinary upload fails, catch the error
+                flash(f"Upload failed: {e}", "danger")
+                return redirect(url_for("upload"))
+
         else:
             flash("No file selected.", "danger")
 
     return render_template("upload.html")
+
 
 
 
