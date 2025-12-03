@@ -4,16 +4,16 @@
 <div class="container">
   <h1 class="neon-text big-title">Admin Dashboard</h1>
 
-  <!-- Videos -->
+  <!-- Videos management -->
   <div class="card">
     <h2 class="neon-text">Manage Videos</h2>
     {% if videos %}
-      <ul>
+      <ul class="video-list">
         {% for v in videos %}
-          <li>
-            <strong>{{ v.title }}</strong> by {{ v.uploader }}
-            <form method="post" action="{{ url_for('delete_video', id=v.id) }}" style="display:inline;">
-              <button type="submit" class="btn">Delete</button>
+          <li class="video-item">
+            <strong>{{ v.title }}</strong> by {{ v.uploader }} | Likes: {{ v.likes }}
+            <form method="post" action="{{ url_for('admin_delete_video', id=v.id) }}" style="display:inline;">
+              <button type="submit" class="btn danger">Delete</button>
             </form>
           </li>
         {% endfor %}
@@ -23,16 +23,16 @@
     {% endif %}
   </div>
 
-  <!-- Comments -->
+  <!-- Comments management -->
   <div class="card">
     <h2 class="neon-text">Manage Comments</h2>
     {% if comments %}
-      <ul>
+      <ul class="comment-list">
         {% for c in comments %}
-          <li>
-            <strong>{{ c.user }}</strong> on <em>{{ c.video_title }}</em>: {{ c.text }}
-            <form method="post" action="{{ url_for('delete_comment', id=c.id) }}" style="display:inline;">
-              <button type="submit" class="btn">Delete</button>
+          <li class="comment-item">
+            <strong>{{ c.user }}</strong>: {{ c.text }}
+            <form method="post" action="{{ url_for('admin_delete_comment', id=c.id) }}" style="display:inline;">
+              <button type="submit" class="btn danger">Delete</button>
             </form>
           </li>
         {% endfor %}
@@ -42,21 +42,19 @@
     {% endif %}
   </div>
 
-  <!-- Users -->
+  <!-- Users management -->
   <div class="card">
     <h2 class="neon-text">Manage Users</h2>
     {% if users %}
-      <ul>
+      <ul class="user-list">
         {% for u in users %}
-          <li>
-            {{ u.username }}
-            {% if not u.premium %}
-              <form method="post" action="{{ url_for('grant_premium', id=u.id) }}" style="display:inline;">
-                <button type="submit" class="btn">Grant Premium</button>
-              </form>
-            {% endif %}
-            <form method="post" action="{{ url_for('kick_user', id=u.id) }}" style="display:inline;">
-              <button type="submit" class="btn">Kick</button>
+          <li class="user-item">
+            {{ u.username }} | Premium: {{ u.premium }}
+            <form method="post" action="{{ url_for('admin_grant_premium', id=u.id) }}" style="display:inline;">
+              <button type="submit" class="btn">Grant Premium</button>
+            </form>
+            <form method="post" action="{{ url_for('admin_kick_user', id=u.id) }}" style="display:inline;">
+              <button type="submit" class="btn danger">Kick</button>
             </form>
           </li>
         {% endfor %}
@@ -66,27 +64,30 @@
     {% endif %}
   </div>
 
-  <!-- Reports -->
+  <!-- Reports management -->
   <div class="card">
-    <h2 class="neon-text">User Reports</h2>
+    <h2 class="neon-text">Reports</h2>
     {% if reports %}
-      <ul>
+      <ul class="report-list">
         {% for r in reports %}
-          <li>
-            <strong>{{ r.reporter }}</strong> reported <strong>{{ r.reported_user }}</strong>  
-            Reason: {{ r.reason }}  
-            Status: {{ r.status }}
-            {% if r.status == "Pending" %}
-              <form method="post" action="{{ url_for('mark_report_reviewed', id=r.id) }}" style="display:inline;">
-                <button type="submit" class="btn">Mark Reviewed</button>
-              </form>
-            {% endif %}
+          <li class="report-item">
+            Reported by {{ r.reporter }} against {{ r.reported_user }} | Reason: {{ r.reason }} | Status: {{ r.status }}
+            <form method="post" action="{{ url_for('admin_mark_report_reviewed', id=r.id) }}" style="display:inline;">
+              <button type="submit" class="btn">Mark Reviewed</button>
+            </form>
           </li>
         {% endfor %}
       </ul>
     {% else %}
       <p>No reports found.</p>
     {% endif %}
+  </div>
+
+  <!-- Navigation -->
+  <div class="card">
+    <a href="{{ url_for('home') }}" class="btn">Back to Home</a>
+    <a href="{{ url_for('leaderboard') }}" class="btn">Leaderboard</a>
+    <a href="{{ url_for('publichat') }}" class="btn">Publichat</a>
   </div>
 </div>
 
