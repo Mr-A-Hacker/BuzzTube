@@ -1,55 +1,36 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-6">
-    <h2 class="text-center mb-4">⚙️ Settings</h2>
 
-    <!-- Profile Picture -->
-    <div class="card shadow-sm mb-4">
-      <div class="card-header">Profile Picture</div>
-      <div class="card-body text-center">
-        {% if user.profile_pic %}
-          <img src="{{ url_for('static', filename='uploads/' ~ user.profile_pic) }}" 
-               class="img-thumbnail mb-3" width="150">
-        {% else %}
-          <p>No profile picture set.</p>
-        {% endif %}
-        <form method="POST" action="{{ url_for('update_pic') }}" enctype="multipart/form-data">
-          <input type="file" class="form-control mb-2" name="pic" accept="image/*" required>
-          <button type="submit" class="btn btn-primary">Update Picture</button>
-        </form>
-      </div>
-    </div>
+<div class="container">
+  <h1 class="neon-text">Settings</h1>
 
-    <!-- Change Password -->
-    <div class="card shadow-sm mb-4">
-      <div class="card-header">Change Password</div>
-      <div class="card-body">
-        <form method="POST" action="{{ url_for('change_password') }}">
-          <div class="mb-3">
-            <input type="password" class="form-control" name="old" placeholder="Old Password" required>
-          </div>
-          <div class="mb-3">
-            <input type="password" class="form-control" name="new" placeholder="New Password" required>
-          </div>
-          <button type="submit" class="btn btn-warning">Change Password</button>
-        </form>
-      </div>
-    </div>
+  <!-- Profile picture -->
+  <div class="card">
+    <h2 class="neon-text">Profile Picture</h2>
+    {% if user.profile_pic %}
+      <img src="{{ url_for('uploads', filename=user.profile_pic) }}" alt="Profile Picture" style="max-width:150px; border-radius:50%; margin-bottom:1rem;">
+    {% else %}
+      <p>No profile picture set.</p>
+    {% endif %}
+    <form method="post" action="{{ url_for('update_pic') }}" enctype="multipart/form-data">
+      <input type="file" name="pic" accept="image/png,image/jpeg" required>
+      <button type="submit" class="btn">Update Picture</button>
+    </form>
+  </div>
 
-    <!-- Dark/Light Mode -->
-    <div class="card shadow-sm mb-4">
-      <div class="card-header">Theme</div>
-      <div class="card-body text-center">
-        <button id="toggleTheme" class="btn btn-secondary">Toggle Dark/Light Mode</button>
-      </div>
-    </div>
+  <!-- Change password -->
+  <div class="card">
+    <h2 class="neon-text">Change Password</h2>
+    <form method="post" action="{{ url_for('change_password') }}">
+      <label for="old">Old Password</label>
+      <input type="password" id="old" name="old" required>
+
+      <label for="new">New Password</label>
+      <input type="password" id="new" name="new" required>
+
+      <button type="submit" class="btn">Change Password</button>
+    </form>
   </div>
 </div>
 
-<script>
-  document.getElementById('toggleTheme').addEventListener('click', function() {
-    document.body.classList.toggle('dark-mode');
-  });
-</script>
 {% endblock %}
