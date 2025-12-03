@@ -154,7 +154,16 @@ def login():
             return redirect(url_for("home"))
         else:
             flash("Invalid credentials.", "danger")
-    return render_template("login.html")
+
+    # Always fetch current users for display
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT username FROM users")
+    all_users = cur.fetchall()
+    conn.close()
+
+    return render_template("login.html", users=all_users)
+
 
 
 @app.route("/logout")
