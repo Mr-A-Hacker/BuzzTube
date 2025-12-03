@@ -133,6 +133,17 @@ def admin_delete_message(id):
     flash("Message deleted.", "info")
     return redirect(url_for("admin_dashboard"))
 
+@app.route("/like/<int:id>", methods=["POST"])
+@premium_required
+def like_video(id):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE videos SET likes = likes + 1 WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+    flash("You liked the video!", "success")
+    return redirect(url_for("video", id=id))
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
