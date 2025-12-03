@@ -123,6 +123,14 @@ def enforce_premium_timer():
                 flash("Free access expired. Please upgrade to BuzzTub Premium.", "danger")
                 return redirect(url_for('login'))
 
+
+from datetime import datetime
+
+@app.context_processor
+def inject_now():
+    return {'datetime': datetime}
+
+
 # ----------------------------
 # Routes: Auth
 # ----------------------------
