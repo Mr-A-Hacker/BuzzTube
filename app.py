@@ -121,6 +121,18 @@ def signup():
             conn.close()
     return render_template("signup.html")
 
+@app.route("/admin/delete_message/<int:id>", methods=["POST"])
+def admin_delete_message(id):
+    if not session.get("admin"):
+        return redirect(url_for("home"))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM messages WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+    flash("Message deleted.", "info")
+    return redirect(url_for("admin_dashboard"))
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
