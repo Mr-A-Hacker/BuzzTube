@@ -2,52 +2,37 @@
 {% block content %}
 
 <div class="container">
-  <h1 class="neon-text">Publichat</h1>
+  <h1 class="neon-text big-title">BuzzTub Publichat</h1>
 
-  <!-- Post form -->
-  {% if session.get('user') %}
-    <form method="post" enctype="multipart/form-data" class="card">
-      <label for="text">Message</label>
-      <textarea id="text" name="text" placeholder="Say something..."></textarea>
-
-      <label for="image">Attach Image</label>
-      <input type="file" id="image" name="image" accept="image/png,image/jpeg">
-
-      <label for="gif">Attach GIF</label>
-      <input type="file" id="gif" name="gif" accept="image/gif">
-
-      <button type="submit" class="btn">Post</button>
-    </form>
-  {% else %}
-    <p><a href="{{ url_for('login') }}">Log in</a> to post messages.</p>
-  {% endif %}
-
-  <!-- Messages feed -->
-  <div class="card">
-    <h2 class="neon-text">Community Feed</h2>
+  <!-- Chat messages -->
+  <div class="card chat-box">
+    <h2 class="neon-text">Recent Messages</h2>
     {% if messages %}
-      <ul>
-        {% for msg in messages %}
-          <li style="margin-bottom:1rem;">
-            <strong>{{ msg.user }}</strong> 
-            <span style="font-size:0.8rem; color:#aaa;">
-              {{ msg.created_at.strftime("%Y-%m-%d %H:%M") }}
-            </span><br>
-            {% if msg.text %}
-              <p>{{ msg.text }}</p>
-            {% endif %}
-            {% if msg.image %}
-              <img src="{{ url_for('uploads', filename=msg.image) }}" alt="Image" style="max-width:300px; display:block; margin-top:0.5rem;">
-            {% endif %}
-            {% if msg.gif %}
-              <img src="{{ url_for('uploads', filename=msg.gif) }}" alt="GIF" style="max-width:300px; display:block; margin-top:0.5rem;">
-            {% endif %}
+      <ul class="chat-list">
+        {% for m in messages %}
+          <li class="chat-item">
+            <strong>{{ m.user }}</strong>: {{ m.message }}
           </li>
         {% endfor %}
       </ul>
     {% else %}
       <p>No messages yet. Start the conversation!</p>
     {% endif %}
+  </div>
+
+  <!-- Message form -->
+  <div class="card">
+    <form method="post" action="{{ url_for('publichat') }}">
+      <textarea name="message" placeholder="Type your message..." required></textarea>
+      <button type="submit" class="btn">Send</button>
+    </form>
+  </div>
+
+  <!-- Navigation -->
+  <div class="card">
+    <a href="{{ url_for('home') }}" class="btn">Back to Home</a>
+    <a href="{{ url_for('leaderboard') }}" class="btn">Leaderboard</a>
+    <a href="{{ url_for('upload') }}" class="btn">Upload Video</a>
   </div>
 </div>
 
