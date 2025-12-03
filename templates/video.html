@@ -2,17 +2,31 @@
 {% block content %}
 
 <div class="container">
+  <!-- Video Title -->
   <div class="card">
-    <!-- Video Title -->
     <h1 class="neon-text big-title">{{ v['title'] }}</h1>
     <p class="meta">Uploaded by {{ v['uploader'] }}</p>
 
     <!-- Video Player -->
     {% if v['filepath'] %}
-      <video src="{{ v['filepath'] }}" controls width="100%" style="border-radius: 12px; box-shadow: 0 0 20px #6600ff;"></video>
+      <video controls width="100%" style="border-radius:12px; box-shadow:0 0 20px #6600ff;" preload="metadata">
+        <source src="{{ v['filepath'] }}" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
     {% else %}
       <p class="flash warning">No video file available.</p>
     {% endif %}
+
+    <!-- Like & Follow Buttons -->
+    <div class="actions" style="margin-top:12px;">
+      <form action="{{ url_for('like_video', id=v['id']) }}" method="POST" style="display:inline;">
+        <button type="submit" class="btn">👍 Like ({{ v['likes'] }})</button>
+      </form>
+
+      <form action="{{ url_for('follow_user', username=v['uploader']) }}" method="POST" style="display:inline;">
+        <button type="submit" class="btn">➕ Follow {{ v['uploader'] }}</button>
+      </form>
+    </div>
   </div>
 
   <!-- Comments Section -->
