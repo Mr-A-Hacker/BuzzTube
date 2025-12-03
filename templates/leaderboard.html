@@ -2,34 +2,30 @@
 {% block content %}
 
 <div class="container">
-  <h1 class="neon-text">Top Creators</h1>
+  <h1 class="neon-text big-title">Top Videos Leaderboard</h1>
 
-  {% if leaders %}
-    <table class="card" style="width:100%; border-collapse: collapse;">
-      <thead>
-        <tr>
-          <th style="text-align:left; padding:0.5rem;">Rank</th>
-          <th style="text-align:left; padding:0.5rem;">Creator</th>
-          <th style="text-align:left; padding:0.5rem;">Subscribers</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for leader in leaders %}
-          <tr>
-            <td style="padding:0.5rem;">{{ loop.index }}</td>
-            <td style="padding:0.5rem;">
-              <a href="{{ url_for('user_profile', username=leader.username) }}">
-                {{ leader.username }}
-              </a>
-            </td>
-            <td style="padding:0.5rem;">{{ leader.sub_count }}</td>
-          </tr>
+  <div class="card">
+    {% if videos %}
+      <ol class="leaderboard-list">
+        {% for v in videos %}
+          <li class="leaderboard-item">
+            <strong>{{ v.title }}</strong>  
+            <span class="meta">by {{ v.uploader }} | Likes: {{ v.likes }}</span>
+            <a href="{{ url_for('video', id=v.id) }}" class="btn">Watch</a>
+          </li>
         {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p>No subscriptions yet. Be the first to subscribe!</p>
-  {% endif %}
+      </ol>
+    {% else %}
+      <p>No videos yet. Upload something to climb the leaderboard!</p>
+    {% endif %}
+  </div>
+
+  <!-- Navigation -->
+  <div class="card">
+    <a href="{{ url_for('home') }}" class="btn">Back to Home</a>
+    <a href="{{ url_for('upload') }}" class="btn">Upload Video</a>
+    <a href="{{ url_for('publichat') }}" class="btn">Publichat</a>
+  </div>
 </div>
 
 {% endblock %}
