@@ -2,17 +2,28 @@
 {% block content %}
 
 <div class="container">
-  <h1 class="neon-text">Upload a Video</h1>
+  <h1 class="neon-text big-title">Upload a Video</h1>
 
-  <form method="post" enctype="multipart/form-data">
-    <label for="title">Video Title</label>
-    <input type="text" id="title" name="title" placeholder="Enter video title" required>
+  <div class="card">
+    <form method="post" action="{{ url_for('upload') }}">
+      <label for="title" class="neon-text">Video Title</label>
+      <input type="text" id="title" name="title" required>
 
-    <label for="file">Select Video (MP4 only)</label>
-    <input type="file" id="file" name="file" accept="video/mp4" required>
+      <!-- Placeholder for file upload -->
+      <label for="file" class="neon-text">Video File (coming soon)</label>
+      <input type="file" id="file" name="file" disabled>
+      <p class="meta">File upload disabled in this demo — only title is stored.</p>
 
-    <button type="submit" class="btn">Upload</button>
-  </form>
+      <button type="submit" class="btn">Upload</button>
+    </form>
+  </div>
+
+  <!-- Navigation -->
+  <div class="card">
+    <a href="{{ url_for('home') }}" class="btn">Back to Home</a>
+    <a href="{{ url_for('leaderboard') }}" class="btn">Leaderboard</a>
+    <a href="{{ url_for('publichat') }}" class="btn">Publichat</a>
+  </div>
 </div>
 
 {% endblock %}
