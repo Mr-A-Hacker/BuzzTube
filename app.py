@@ -73,7 +73,7 @@ def home():
 
 @app.route("/video/<int:id>")
 @login_required
-def video_page(id):
+def video(id):
     conn = get_db()
     cur = conn.cursor()
     cur.execute("SELECT * FROM videos WHERE id=?", (id,))
@@ -85,7 +85,7 @@ def video_page(id):
 
 @app.route("/upload", methods=["GET", "POST"])
 @login_required
-def upload_video():
+def upload():
     if request.method == "POST":
         title = request.form["title"]
         uploader = session["user"]
@@ -102,28 +102,16 @@ def upload_video():
 @app.route("/leaderboard")
 @login_required
 def leaderboard():
-    ...
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM videos ORDER BY likes DESC LIMIT 10")
+    videos = cur.fetchall()
+    conn.close()
+    return render_template("leaderboard.html", videos=videos)
 
 @app.route("/publichat", methods=["GET", "POST"])
 @login_required
 def publichat():
-    ...
-
-@app.route("/profile")
-@login_required
-def profile():
-    ...
-
-@app.route("/video/<int:id>")
-@login_required
-def video(id):
-    ...
-
-
-
-@app.route("/publichat", methods=["GET", "POST"])
-@login_required
-def publichat_page():
     conn = get_db()
     cur = conn.cursor()
     if request.method == "POST":
@@ -137,7 +125,7 @@ def publichat_page():
 
 @app.route("/profile")
 @login_required
-def profile_page():
+def profile():
     conn = get_db()
     cur = conn.cursor()
     cur.execute("SELECT * FROM videos WHERE uploader=?", (session["user"],))
@@ -149,7 +137,7 @@ def profile_page():
 
 @app.route("/settings", methods=["GET", "POST"])
 @login_required
-def settings_page():
+def settings():
     if request.method == "POST":
         flash("Settings updated!", "info")
     return render_template("settings.html", user={"username":session["user"]})
