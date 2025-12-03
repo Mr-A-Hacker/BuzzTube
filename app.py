@@ -239,16 +239,24 @@ def upload():
 
     return render_template("upload.html")
 
-
 @app.route("/leaderboard")
 @premium_required
 def leaderboard():
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM videos ORDER BY likes DESC LIMIT 10")
+    # Get top 10 videos by likes
+    cur.execute("SELECT title, likes FROM videos ORDER BY likes DESC LIMIT 10")
     videos = cur.fetchall()
     conn.close()
-    return render_template("leaderboard.html", videos=videos)
+
+    # Pass titles and likes separately for chart rendering
+    titles = [v["title"] for v in videos]
+    likes = [v["likes"] for v in videos]
+
+    return render_template("leaderboard.html", titles=titles, likes=likes, videos=videos)
+
+
+
 @app.route("/publichat", methods=["GET", "POST"])
 @premium_required
 def publichat():
