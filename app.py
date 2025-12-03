@@ -1,14 +1,19 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-import sqlite3, os, time
+import sqlite3, time
 from functools import wraps
-import werkzeug
+import cloudinary
+import cloudinary.uploader
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"   # replace with env var in production
 DB_FILE = "buzz.db"
 
-UPLOAD_FOLDER = "static/uploads"
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+# Configure Cloudinary (use environment variables in production)
+cloudinary.config(
+    cloud_name="your_cloud_name",
+    api_key="your_api_key",
+    api_secret="your_api_secret"
+)
 
 def get_db():
     conn = sqlite3.connect(DB_FILE)
@@ -108,6 +113,7 @@ def premium_required(f):
 
         return f(*args, **kwargs)
     return decorated_function
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
@@ -127,7 +133,6 @@ def signup():
         finally:
             conn.close()
     return render_template("signup.html")
-
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -158,7 +163,6 @@ def login():
 
     return render_template("login.html", users=all_users)
 
-
 @app.route("/logout")
 def logout():
     session.clear()
@@ -173,7 +177,6 @@ def home():
     videos = cur.fetchall()
     conn.close()
     return render_template("home.html", videos=videos)
-
 
 @app.route("/video/<int:id>", methods=["GET", "POST"])
 @premium_required
@@ -195,7 +198,6 @@ def video(id):
 
     return render_template("video.html", v=v, comments=comments)
 
-
 @app.route("/upload", methods=["GET", "POST"])
 def upload():
     if request.method == "POST":
@@ -204,11 +206,9 @@ def upload():
 
         if file and file.filename != "":
             try:
-                # Attempt to upload to Cloudinary
                 result = cloudinary.uploader.upload(file, resource_type="video")
                 web_path = result["secure_url"]
 
-                # Save Cloudinary URL in DB
                 conn = get_db()
                 cur = conn.cursor()
                 cur.execute("INSERT INTO videos (title, uploader, filepath) VALUES (?, ?, ?)",
@@ -218,19 +218,13 @@ def upload():
 
                 flash("Video uploaded successfully!", "success")
                 return redirect(url_for("home"))
-
             except Exception as e:
-                # If Cloudinary upload fails, catch the error
                 flash(f"Upload failed: {e}", "danger")
                 return redirect(url_for("upload"))
-
         else:
             flash("No file selected.", "danger")
 
     return render_template("upload.html")
-
-
-
 
 @app.route("/leaderboard")
 @premium_required
@@ -241,7 +235,6 @@ def leaderboard():
     videos = cur.fetchall()
     conn.close()
     return render_template("leaderboard.html", videos=videos)
-
 
 @app.route("/publichat", methods=["GET", "POST"])
 @premium_required
@@ -261,7 +254,6 @@ def publichat():
 
     return render_template("publichat.html", messages=messages)
 
-
 @app.route("/profile")
 @premium_required
 def profile():
@@ -278,7 +270,6 @@ def profile():
     subs = cur.fetchall()
 
     return render_template("profile.html", user=user, videos=videos, subs=subs)
-
 
 @app.route("/settings", methods=["GET", "POST"])
 @premium_required
@@ -297,7 +288,6 @@ def like_video(id):
     conn.close()
     flash("You liked the video!", "success")
     return redirect(url_for("video", id=id))
-
 
 @app.route("/follow/<string:username>", methods=["POST"])
 @premium_required
@@ -336,84 +326,6 @@ def admin_dashboard():
                            users=users,
                            reports=reports,
                            messages=messages)
-
-
-@app.route("/admin/delete_video/<int:id>", methods=["POST"])
-def admin_delete_video(id):
-    if not session.get("admin"):
-        return redirect(url_for("home"))
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("DELETE FROM videos WHERE id=?", (id,))
-    conn.commit()
-    conn.close()
-    flash("Video deleted.", "info")
-    return redirect(url_for("admin_dashboard"))
-
-
-@app.route("/admin/delete_comment/<int:id>", methods=["POST"])
-def admin_delete_comment(id):
-    if not session.get("admin"):
-        return redirect(url_for("home"))
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("DELETE FROM comments WHERE id=?", (id,))
-    conn.commit()
-    conn.close()
-    flash("Comment deleted.", "info")
-    return redirect(url_for("admin_dashboard"))
-
-
-@app.route("/admin/delete_message/<int:id>", methods=["POST"])
-def admin_delete_message(id):
-    if not session.get("admin"):
-        return redirect(url_for("home"))
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("DELETE FROM messages WHERE id=?", (id,))
-    conn.commit()
-    conn.close()
-    flash("Message deleted.", "info")
-    return redirect(url_for("admin_dashboard"))
-
-
-@app.route("/admin/grant_premium/<int:id>", methods=["POST"])
-def admin_grant_premium(id):
-    if not session.get("admin"):
-        return redirect(url_for("home"))
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("UPDATE users SET premium=1 WHERE id=?", (id,))
-    conn.commit()
-    conn.close()
-    flash("Premium granted.", "success")
-    return redirect(url_for("admin_dashboard"))
-
-
-@app.route("/admin/kick_user/<int:id>", methods=["POST"])
-def admin_kick_user(id):
-    if not session.get("admin"):
-        return redirect(url_for("home"))
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("DELETE FROM users WHERE id=?", (id,))
-    conn.commit()
-    conn.close()
-    flash("User kicked.", "info")
-    return redirect(url_for("admin_dashboard"))
-
-
-@app.route("/admin/mark_report_reviewed/<int:id>", methods=["POST"])
-def admin_mark_report_reviewed(id):
-    if not session.get("admin"):
-        return redirect(url_for("home"))
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("UPDATE reports SET status='reviewed' WHERE id=?", (id,))
-    conn.commit()
-    conn.close()
-    flash("Report marked as reviewed.", "success")
-    return redirect(url_for("admin_dashboard"))
 if __name__ == "__main__":
     init_db()
     app.run(host="0.0.0.0", port=5000, debug=True)
