@@ -7,22 +7,21 @@
 
 body {
   font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-  color: #eee;
+  background: radial-gradient(circle at top left, #0d0d0d, #1a1a2e, #16213e);
+  color: #e0e0e0;
   line-height: 1.6;
-  perspective: 1000px; /* enables 3D transforms */
+  perspective: 1000px;
 }
 
 /* Navbar */
 nav {
-  background: linear-gradient(90deg, #ff0080, #7928ca, #2afadf);
+  background: linear-gradient(90deg, #00f5d4, #00bbf9, #9b5de5);
   padding: 1rem;
   color: #fff;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-  transform: translateZ(20px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.6);
 }
 
 nav a {
@@ -34,7 +33,7 @@ nav a {
 }
 
 nav a:hover {
-  color: #ffeb3b;
+  color: #fffd82;
   transform: scale(1.2) rotateY(10deg);
 }
 
@@ -45,11 +44,11 @@ nav a:hover {
   padding: 0 1rem;
 }
 
-/* Cards (videos, posts, etc.) */
+/* Cards */
 .card {
-  background: #1e1e2f;
+  background: #1b1b2f;
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+  box-shadow: 0 12px 30px rgba(0,255,255,0.2);
   margin-bottom: 2rem;
   padding: 1.5rem;
   transform-style: preserve-3d;
@@ -57,13 +56,13 @@ nav a:hover {
 }
 
 .card:hover {
-  transform: rotateY(8deg) translateY(-10px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+  transform: rotateY(6deg) translateY(-10px);
+  box-shadow: 0 20px 40px rgba(155,93,229,0.6);
 }
 
 /* Buttons */
 button, .btn {
-  background: linear-gradient(135deg, #ff0080, #ff8c00);
+  background: linear-gradient(135deg, #ff6b6b, #f06595, #845ef7);
   color: #fff;
   border: none;
   padding: 0.7rem 1.4rem;
@@ -71,12 +70,12 @@ button, .btn {
   cursor: pointer;
   font-weight: 600;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.5);
 }
 
 button:hover, .btn:hover {
   transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+  box-shadow: 0 12px 30px rgba(255,107,107,0.6);
 }
 
 /* Inputs */
@@ -84,16 +83,16 @@ input, textarea, select {
   width: 100%;
   padding: 0.7rem;
   margin: 0.6rem 0;
-  border: 2px solid #444;
+  border: 2px solid #333;
   border-radius: 6px;
-  background: #2c2c3c;
+  background: #222;
   color: #fff;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 input:focus, textarea:focus, select:focus {
-  border-color: #ff0080;
-  box-shadow: 0 0 12px #ff0080;
+  border-color: #00f5d4;
+  box-shadow: 0 0 12px #00f5d4;
   outline: none;
 }
 
@@ -107,20 +106,19 @@ input:focus, textarea:focus, select:focus {
   box-shadow: 0 6px 15px rgba(0,0,0,0.5);
 }
 
-.flash.success { background: #28a745; color: #fff; }
-.flash.warning { background: #ffc107; color: #222; }
-.flash.danger  { background: #dc3545; color: #fff; }
-.flash.info    { background: #17a2b8; color: #fff; }
+.flash.success { background: #06d6a0; color: #fff; }
+.flash.warning { background: #ffd166; color: #222; }
+.flash.danger  { background: #ef476f; color: #fff; }
+.flash.info    { background: #118ab2; color: #fff; }
 
 /* Footer */
 footer {
-  background: #111;
-  color: #aaa;
+  background: #0d0d0d;
+  color: #bbb;
   text-align: center;
   padding: 1rem;
   margin-top: 2rem;
-  box-shadow: 0 -8px 20px rgba(0,0,0,0.6);
-  transform: translateZ(10px);
+  box-shadow: 0 -8px 25px rgba(0,0,0,0.6);
 }
 
 /* Splash screen */
@@ -128,7 +126,7 @@ footer {
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: radial-gradient(circle at center, #0f2027, #203a43, #2c5364);
+  background: radial-gradient(circle at center, #1a1a2e, #16213e, #0f3460);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -136,16 +134,15 @@ footer {
   color: #fff;
   z-index: 9999;
   animation: fadeOut 1s ease forwards;
-  animation-delay: 3s; /* stays for 3 seconds */
+  animation-delay: 3s;
 }
 
 .splash-logo {
   font-size: 4rem;
   font-weight: 900;
-  background: linear-gradient(135deg, #ff0080, #ff8c00, #40e0d0);
+  background: linear-gradient(135deg, #ff6b6b, #f06595, #845ef7, #00f5d4);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  transform: rotateY(0deg);
   animation: spin3D 3s ease-in-out;
 }
 
