@@ -2,27 +2,23 @@
 {% block content %}
 
 <div class="container">
-  <h1 class="neon-text big-title">Upload a Video</h1>
-
   <div class="card">
-    <form method="post" action="{{ url_for('upload') }}">
-      <label for="title" class="neon-text">Video Title</label>
-      <input type="text" id="title" name="title" required>
+    <h1 class="neon-text big-title">Upload a Video</h1>
 
-      <!-- Placeholder for file upload -->
-      <label for="file" class="neon-text">Video File (coming soon)</label>
-      <input type="file" id="file" name="file" disabled>
-      <p class="meta">File upload disabled in this demo — only title is stored.</p>
+    <form method="POST" enctype="multipart/form-data">
+      <!-- Title -->
+      <label for="title">Video Title</label>
+      <input type="text" id="title" name="title" placeholder="Enter video title" required>
 
+      <!-- File -->
+      <label for="file">Select Video File</label>
+      <input type="file" id="file" name="file" accept="video/*" required>
+
+      <!-- Submit -->
       <button type="submit" class="btn">Upload</button>
     </form>
-  </div>
 
-  <!-- Navigation -->
-  <div class="card">
-    <a href="{{ url_for('home') }}" class="btn">Back to Home</a>
-    <a href="{{ url_for('leaderboard') }}" class="btn">Leaderboard</a>
-    <a href="{{ url_for('publichat') }}" class="btn">Publichat</a>
+    <p class="meta">Only premium users have unlimited access. Free users are limited to 10 minutes.</p>
   </div>
 </div>
 
