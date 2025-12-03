@@ -2,43 +2,35 @@
 {% block content %}
 
 <div class="container">
-  <h1 class="neon-text">BuzzTub Home</h1>
+  <h1 class="neon-text big-title">BuzzTub Home</h1>
 
-  <!-- Search bar -->
-  <form method="get" action="{{ url_for('home') }}">
-    <input type="text" name="q" placeholder="Search videos or creators..." value="{{ request.args.get('q','') }}">
-    <button type="submit" class="btn">Search</button>
-  </form>
+  <!-- Show videos -->
+  <div class="card">
+    <h2 class="neon-text">Latest Videos</h2>
+    {% if videos %}
+      <ul class="video-list">
+        {% for v in videos %}
+          <li class="video-item">
+            <strong>{{ v.title }}</strong>  
+            <span class="meta">by {{ v.uploader }} | Likes: {{ v.likes }}</span>
+            <a href="{{ url_for('video', id=v.id) }}" class="btn">Watch</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No videos uploaded yet. Be the first to <a href="{{ url_for('upload') }}">upload</a>!</p>
+    {% endif %}
+  </div>
 
-  <!-- Upload button -->
-  {% if session.get('user') %}
-    <div style="margin:1rem 0;">
-      <a href="{{ url_for('upload') }}" class="btn">Upload Video</a>
-    </div>
-  {% endif %}
-
-  <!-- Video list -->
-  {% if videos %}
-    <div class="video-grid">
-      {% for video in videos %}
-        <div class="card">
-          <h2>{{ video.title }}</h2>
-          <p>Uploaded by <a href="{{ url_for('user_profile', username=video.uploader) }}">{{ video.uploader }}</a></p>
-          <video width="100%" controls>
-            <source src="{{ url_for('uploads', filename=video.filename) }}" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
-          <p>Likes: {{ video.likes }}</p>
-          <form method="post" action="{{ url_for('like', id=video.id) }}">
-            <button type="submit" class="btn">👍 Like</button>
-          </form>
-          <a href="{{ url_for('video', id=video.id) }}" class="btn">View & Comment</a>
-        </div>
-      {% endfor %}
-    </div>
-  {% else %}
-    <p>No videos yet. Be the first to upload!</p>
-  {% endif %}
+  <!-- Quick links -->
+  <div class="card">
+    <h2 class="neon-text">Explore</h2>
+    <p>
+      <a href="{{ url_for('leaderboard') }}" class="btn">Leaderboard</a>
+      <a href="{{ url_for('publichat') }}" class="btn">Publichat</a>
+      <a href="{{ url_for('profile') }}" class="btn">My Profile</a>
+    </p>
+  </div>
 </div>
 
 {% endblock %}
