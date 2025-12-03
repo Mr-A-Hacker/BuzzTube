@@ -72,6 +72,15 @@ def init_db():
         )
     """)
 
+    # Follows
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS follows (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            follower TEXT,
+            following TEXT
+        )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -90,11 +99,10 @@ def premium_required(f):
         user = cur.fetchone()
         conn.close()
 
-        # Non-premium timeout check
         if user and user["premium"] == 0:
             start = session.get("login_time", 0)
             now = int(time.time())
-            if now - start > 600:  # 600 seconds = 10 minutes
+            if now - start > 600:  # 10 minutes
                 session.clear()
                 flash("Your free 10‑minute session expired. Upgrade to premium!", "danger")
                 return redirect(url_for("login"))
@@ -121,29 +129,6 @@ def signup():
             conn.close()
     return render_template("signup.html")
 
-@app.route("/admin/delete_message/<int:id>", methods=["POST"])
-def admin_delete_message(id):
-    if not session.get("admin"):
-        return redirect(url_for("home"))
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("DELETE FROM messages WHERE id=?", (id,))
-    conn.commit()
-    conn.close()
-    flash("Message deleted.", "info")
-    return redirect(url_for("admin_dashboard"))
-
-@app.route("/like/<int:id>", methods=["POST"])
-@premium_required
-def like_video(id):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("UPDATE videos SET likes = likes + 1 WHERE id=?", (id,))
-    conn.commit()
-    conn.close()
-    flash("You liked the video!", "success")
-    return redirect(url_for("video", id=id))
-
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -166,7 +151,6 @@ def login():
         else:
             flash("Invalid credentials.", "danger")
 
-    # Always fetch current users for display
     conn = get_db()
     cur = conn.cursor()
     cur.execute("SELECT username FROM users")
@@ -174,7 +158,6 @@ def login():
     conn.close()
 
     return render_template("login.html", users=all_users)
-
 
 
 @app.route("/logout")
@@ -282,7 +265,10 @@ def profile():
     user = cur.fetchone()
     conn.close()
 
-    subs = []  # placeholder for subscriptions
+    cur = get_db().cursor()
+    cur.execute("SELECT following FROM follows WHERE follower=?", (session["user"],))
+    subs = cur.fetchall()
+
     return render_template("profile.html", user=user, videos=videos, subs=subs)
 
 
@@ -293,6 +279,29 @@ def settings():
         flash("Settings updated!", "success")
         return redirect(url_for("profile"))
     return render_template("settings.html")
+@app.route("/like/<int:id>", methods=["POST"])
+@premium_required
+def like_video(id):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE videos SET likes = likes + 1 WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+    flash("You liked the video!", "success")
+    return redirect(url_for("video", id=id))
+
+
+@app.route("/follow/<string:username>", methods=["POST"])
+@premium_required
+def follow_user(username):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("INSERT INTO follows (follower, following) VALUES (?, ?)",
+                (session["user"], username))
+    conn.commit()
+    conn.close()
+    flash(f"You are now following {username}!", "success")
+    return redirect(url_for("profile"))
 @app.route("/admin")
 def admin_dashboard():
     if not session.get("admin"):
@@ -309,9 +318,16 @@ def admin_dashboard():
     users = cur.fetchall()
     cur.execute("SELECT * FROM reports")
     reports = cur.fetchall()
+    cur.execute("SELECT * FROM messages")
+    messages = cur.fetchall()
     conn.close()
 
-    return render_template("admin.html", videos=videos, comments=comments, users=users, reports=reports)
+    return render_template("admin.html",
+                           videos=videos,
+                           comments=comments,
+                           users=users,
+                           reports=reports,
+                           messages=messages)
 
 
 @app.route("/admin/delete_video/<int:id>", methods=["POST"])
@@ -337,6 +353,19 @@ def admin_delete_comment(id):
     conn.commit()
     conn.close()
     flash("Comment deleted.", "info")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/delete_message/<int:id>", methods=["POST"])
+def admin_delete_message(id):
+    if not session.get("admin"):
+        return redirect(url_for("home"))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM messages WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+    flash("Message deleted.", "info")
     return redirect(url_for("admin_dashboard"))
 
 
@@ -378,6 +407,5 @@ def admin_mark_report_reviewed(id):
     flash("Report marked as reviewed.", "success")
     return redirect(url_for("admin_dashboard"))
 if __name__ == "__main__":
-    # Ensure DB schema exists before serving
     init_db()
     app.run(host="0.0.0.0", port=5000, debug=True)
