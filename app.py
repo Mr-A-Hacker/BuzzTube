@@ -102,12 +102,23 @@ def upload_video():
 @app.route("/leaderboard")
 @login_required
 def leaderboard():
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM videos ORDER BY likes DESC LIMIT 10")
-    videos = cur.fetchall()
-    conn.close()
-    return render_template("leaderboard.html", videos=videos)
+    ...
+
+@app.route("/publichat", methods=["GET", "POST"])
+@login_required
+def publichat():
+    ...
+
+@app.route("/profile")
+@login_required
+def profile():
+    ...
+
+@app.route("/video/<int:id>")
+@login_required
+def video(id):
+    ...
+
 
 
 @app.route("/publichat", methods=["GET", "POST"])
