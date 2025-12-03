@@ -2,41 +2,41 @@
 {% block content %}
 
 <div class="container">
-  <h1 class="neon-text big-title">{{ v.title }}</h1>
-  <p class="meta">Uploaded by {{ v.uploader }} | Likes: {{ v.likes }}</p>
+  <div class="card">
+    <!-- Video Title -->
+    <h1 class="neon-text big-title">{{ v['title'] }}</h1>
+    <p class="meta">Uploaded by {{ v['uploader'] }}</p>
 
-  <!-- Video player placeholder -->
-  <div class="card video-player">
-    <p class="neon-text">[Video content would play here]</p>
+    <!-- Video Player -->
+    {% if v['filepath'] %}
+      <video src="{{ v['filepath'] }}" controls width="100%" style="border-radius: 12px; box-shadow: 0 0 20px #6600ff;"></video>
+    {% else %}
+      <p class="flash warning">No video file available.</p>
+    {% endif %}
   </div>
 
-  <!-- Comments section -->
+  <!-- Comments Section -->
   <div class="card">
     <h2 class="neon-text">Comments</h2>
-    {% if comments %}
-      <ul class="comment-list">
-        {% for c in comments %}
-          <li class="comment-item">
-            <strong>{{ c.user }}</strong>: {{ c.text }}
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>No comments yet. Be the first to comment!</p>
-    {% endif %}
 
-    <!-- Add comment form -->
-    <form method="post" action="{{ url_for('video', id=v.id) }}">
-      <textarea name="text" placeholder="Add a comment..." required></textarea>
+    <!-- Comment Form -->
+    <form method="POST">
+      <label for="text">Add a comment</label>
+      <textarea id="text" name="text" placeholder="Write your comment..." required></textarea>
       <button type="submit" class="btn">Post Comment</button>
     </form>
-  </div>
 
-  <!-- Navigation -->
-  <div class="card">
-    <a href="{{ url_for('home') }}" class="btn">Back to Home</a>
-    <a href="{{ url_for('leaderboard') }}" class="btn">Leaderboard</a>
-    <a href="{{ url_for('publichat') }}" class="btn">Publichat</a>
+    <!-- Comment List -->
+    <ul class="comment-list">
+      {% for c in comments %}
+        <li>
+          <strong>{{ c['user'] }}</strong>: {{ c['text'] }}
+          <span class="meta">Comment #{{ c['id'] }}</span>
+        </li>
+      {% else %}
+        <li class="meta">No comments yet. Be the first to comment!</li>
+      {% endfor %}
+    </ul>
   </div>
 </div>
 
