@@ -1,73 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>BuzzTub</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8">
+  <title>BuzzTub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Link to your static CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+  <!-- Splash screen -->
+  <div id="splash">
+    <div class="splash-logo">BuzzTub</div>
+    <div class="splash-sub">Bubble‑branded video hub</div>
+  </div>
 
-    <!-- Floating background bubbles -->
-    <div class="bubble small"></div>
-    <div class="bubble medium"></div>
-    <div class="bubble large"></div>
-    <div class="bubble xlarge"></div>
-    <div class="bubble xxlarge"></div>
-
-    <!-- Splash Screen -->
-    <div id="splash">
-        <h1>BuzzTub</h1>
+  <!-- Navbar -->
+  <nav>
+    <div class="nav-left">
+      <a href="{{ url_for('home') }}">Home</a>
+      <a href="{{ url_for('leaderboard') }}">Leaderboard</a>
+      <a href="{{ url_for('publichat') }}">Publichat</a>
     </div>
-    <script>
-      // Hide splash after 3 seconds
-      setTimeout(function() {
-        document.getElementById('splash').style.display = 'none';
-      }, 3000);
-    </script>
-
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand bubble-brand" href="{{ url_for('home') }}">BuzzTub</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
-                    data-bs-target="#navbarNav" aria-controls="navbarNav" 
-                    aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('upload') }}">Upload</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('leaderboard') }}">Leaderboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('publichat') }}">Publichat</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin') }}">Admin</a></li>
-                    {% if session.get('user') %}
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
-                    {% else %}
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('signup') }}">Signup</a></li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="container mt-4">
-        {% block content %}
-        <!-- Page-specific content goes here -->
-        {% endblock %}
+    <div class="nav-right">
+      {% if session.get('user') %}
+        <a href="{{ url_for('profile') }}">Profile</a>
+        <a href="{{ url_for('settings') }}">Settings</a>
+        {% if session.get('is_admin') %}
+          <a href="{{ url_for('admin') }}">Admin</a>
+        {% endif %}
+        <a href="{{ url_for('logout') }}">Logout</a>
+      {% else %}
+        <a href="{{ url_for('login') }}">Login</a>
+        <a href="{{ url_for('signup') }}">Signup</a>
+      {% endif %}
     </div>
+  </nav>
 
-    <!-- Footer -->
-    <footer>
-        <p>&copy; 2025 BuzzTub — Bubble-style video sharing platform</p>
-    </footer>
+  <!-- Flash messages -->
+  <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Main content -->
+  <div id="main-content" class="container" style="display:none;">
+    {% block content %}{% endblock %}
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; {{ datetime.utcnow().year }} BuzzTub. All rights reserved.</p>
+  </footer>
+
+  <!-- Splash JS -->
+  <script src="{{ url_for('static', filename='splash.js') }}"></script>
 </body>
 </html>
