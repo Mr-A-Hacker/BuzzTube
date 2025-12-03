@@ -206,13 +206,16 @@ def upload():
 
         if file and file.filename != "":
             filename = werkzeug.utils.secure_filename(file.filename)
-            filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-            file.save(filepath)
+            save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            file.save(save_path)
+
+            # Store the web path, not the filesystem path
+            web_path = url_for("static", filename=f"uploads/{filename}")
 
             conn = get_db()
             cur = conn.cursor()
             cur.execute("INSERT INTO videos (title, uploader, filepath) VALUES (?, ?, ?)",
-                        (title, session["user"], filepath))
+                        (title, session["user"], web_path))
             conn.commit()
             conn.close()
 
@@ -222,6 +225,7 @@ def upload():
             flash("No file selected.", "danger")
 
     return render_template("upload.html")
+
 
 
 @app.route("/leaderboard")
