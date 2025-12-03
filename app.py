@@ -1,10 +1,15 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import sqlite3, os, time
 from functools import wraps
+import werkzeug
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"   # replace with env var in production
 DB_FILE = "buzz.db"
+
+UPLOAD_FOLDER = "static/uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 def get_db():
     conn = sqlite3.connect(DB_FILE)
@@ -31,6 +36,7 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
             uploader TEXT NOT NULL,
+            filepath TEXT,
             likes INTEGER DEFAULT 0
         )
     """)
@@ -181,14 +187,25 @@ def video(id):
 def upload():
     if request.method == "POST":
         title = request.form["title"]
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("INSERT INTO videos (title, uploader) VALUES (?, ?)",
-                    (title, session["user"]))
-        conn.commit()
-        conn.close()
-        flash("Video uploaded successfully!", "success")
-        return redirect(url_for("home"))
+        file = request.files["file"]
+
+        if file and file.filename != "":
+            filename = werkzeug.utils.secure_filename(file.filename)
+            filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            file.save(filepath)
+
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("INSERT INTO videos (title, uploader, filepath) VALUES (?, ?, ?)",
+                        (title, session["user"], filepath))
+            conn.commit()
+            conn.close()
+
+            flash("Video uploaded successfully!", "success")
+            return redirect(url_for("home"))
+        else:
+            flash("No file selected.", "danger")
+
     return render_template("upload.html")
 
 
