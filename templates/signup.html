@@ -2,19 +2,23 @@
 {% block content %}
 
 <div class="container">
-  <h1 class="neon-text">Signup</h1>
+  <h1 class="neon-text big-title">Signup</h1>
 
-  <form method="post" class="card">
-    <label for="username">Choose a Username</label>
-    <input type="text" id="username" name="username" required>
+  <div class="card">
+    <form method="post" action="{{ url_for('signup') }}">
+      <label for="username" class="neon-text">Username</label>
+      <input type="text" id="username" name="username" required>
 
-    <label for="password">Choose a Password</label>
-    <input type="password" id="password" name="password" required>
+      <label for="password" class="neon-text">Password</label>
+      <input type="password" id="password" name="password" required>
 
-    <button type="submit" class="btn">Signup</button>
-  </form>
+      <button type="submit" class="btn">Signup</button>
+    </form>
+  </div>
 
-  <p>Already have an account? <a href="{{ url_for('login') }}">Log in here</a>.</p>
+  <div class="card">
+    <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a>.</p>
+  </div>
 </div>
 
 {% endblock %}
