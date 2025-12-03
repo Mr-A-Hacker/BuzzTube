@@ -73,7 +73,7 @@ def home():
 
 @app.route("/video/<int:id>")
 @login_required
-def video(id):
+def video_page(id):
     conn = get_db()
     cur = conn.cursor()
     cur.execute("SELECT * FROM videos WHERE id=?", (id,))
@@ -85,7 +85,7 @@ def video(id):
 
 @app.route("/upload", methods=["GET", "POST"])
 @login_required
-def upload():
+def upload_video():
     if request.method == "POST":
         title = request.form["title"]
         uploader = session["user"]
@@ -101,7 +101,7 @@ def upload():
 
 @app.route("/leaderboard")
 @login_required
-def leaderboard():
+def leaderboard_page():
     conn = get_db()
     cur = conn.cursor()
     cur.execute("SELECT * FROM videos ORDER BY likes DESC LIMIT 10")
@@ -111,7 +111,7 @@ def leaderboard():
 
 @app.route("/publichat", methods=["GET", "POST"])
 @login_required
-def publichat():
+def publichat_page():
     conn = get_db()
     cur = conn.cursor()
     if request.method == "POST":
@@ -125,7 +125,7 @@ def publichat():
 
 @app.route("/profile")
 @login_required
-def profile():
+def profile_page():
     conn = get_db()
     cur = conn.cursor()
     cur.execute("SELECT * FROM videos WHERE uploader=?", (session["user"],))
@@ -137,31 +137,13 @@ def profile():
 
 @app.route("/settings", methods=["GET", "POST"])
 @login_required
-def settings():
+def settings_page():
     if request.method == "POST":
         flash("Settings updated!", "info")
     return render_template("settings.html", user={"username":session["user"]})
 @app.route("/admin")
 @login_required
-def admin():
-    if not session.get("admin"):
-        flash("Access denied.", "danger")
-        return redirect(url_for("home"))
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM videos")
-    videos = cur.fetchall()
-    cur.execute("SELECT * FROM comments")
-    comments = cur.fetchall()
-    cur.execute("SELECT * FROM users")
-    users = cur.fetchall()
-    cur.execute("SELECT * FROM reports")
-    reports = cur.fetchall()
-    conn.close()
-    return render_template("admin.html", videos=videos, comments=comments, users=users, reports=reports)
-@app.route("/admin")
-@login_required
-def admin():
+def admin_dashboard():
     if not session.get("admin"):
         flash("Access denied.", "danger")
         return redirect(url_for("home"))
@@ -178,10 +160,9 @@ def admin():
     conn.close()
     return render_template("admin.html", videos=videos, comments=comments, users=users, reports=reports)
 
-# Delete video
 @app.route("/delete_video/<int:id>", methods=["POST"])
 @login_required
-def delete_video(id):
+def admin_delete_video(id):
     if not session.get("admin"):
         flash("Access denied.", "danger")
         return redirect(url_for("home"))
@@ -191,12 +172,11 @@ def delete_video(id):
     conn.commit()
     conn.close()
     flash("Video deleted.", "info")
-    return redirect(url_for("admin"))
+    return redirect(url_for("admin_dashboard"))
 
-# Delete comment
 @app.route("/delete_comment/<int:id>", methods=["POST"])
 @login_required
-def delete_comment(id):
+def admin_delete_comment(id):
     if not session.get("admin"):
         flash("Access denied.", "danger")
         return redirect(url_for("home"))
@@ -206,12 +186,11 @@ def delete_comment(id):
     conn.commit()
     conn.close()
     flash("Comment deleted.", "info")
-    return redirect(url_for("admin"))
+    return redirect(url_for("admin_dashboard"))
 
-# Grant premium to user
 @app.route("/grant_premium/<int:id>", methods=["POST"])
 @login_required
-def grant_premium(id):
+def admin_grant_premium(id):
     if not session.get("admin"):
         flash("Access denied.", "danger")
         return redirect(url_for("home"))
@@ -221,12 +200,11 @@ def grant_premium(id):
     conn.commit()
     conn.close()
     flash("User granted premium status.", "success")
-    return redirect(url_for("admin"))
+    return redirect(url_for("admin_dashboard"))
 
-# Kick user
 @app.route("/kick_user/<int:id>", methods=["POST"])
 @login_required
-def kick_user(id):
+def admin_kick_user(id):
     if not session.get("admin"):
         flash("Access denied.", "danger")
         return redirect(url_for("home"))
@@ -236,12 +214,11 @@ def kick_user(id):
     conn.commit()
     conn.close()
     flash("User removed.", "warning")
-    return redirect(url_for("admin"))
+    return redirect(url_for("admin_dashboard"))
 
-# Mark report reviewed
 @app.route("/mark_report_reviewed/<int:id>", methods=["POST"])
 @login_required
-def mark_report_reviewed(id):
+def admin_mark_report_reviewed(id):
     if not session.get("admin"):
         flash("Access denied.", "danger")
         return redirect(url_for("home"))
@@ -251,7 +228,7 @@ def mark_report_reviewed(id):
     conn.commit()
     conn.close()
     flash("Report marked as reviewed.", "info")
-    return redirect(url_for("admin"))
+    return redirect(url_for("admin_dashboard"))
 
 # Initialize schema if missing
 if __name__ == "__main__":
@@ -265,38 +242,10 @@ if __name__ == "__main__":
         cur.execute("CREATE TABLE chat (id INTEGER PRIMARY KEY, user TEXT, message TEXT)")
         cur.execute("CREATE TABLE subscriptions (id INTEGER PRIMARY KEY, user TEXT, creator TEXT)")
         cur.execute("CREATE TABLE reports (id INTEGER PRIMARY KEY, reporter TEXT, reported_user TEXT, reason TEXT, status TEXT)")
+        # Insert starter admin account
+        cur.execute("INSERT INTO users (username, password, premium) VALUES (?, ?, ?)", ("admin", "admin", 1))
         conn.commit()
         conn.close()
-    app.run(debug=True)
 
-
-@app.route("/delete_video/<int:id>", methods=["POST"])
-@login_required
-def delete_video(id):
-    if not session.get("admin"):
-        flash("Access denied.", "danger")
-        return redirect(url_for("home"))
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("DELETE FROM videos WHERE id=?", (id,))
-    conn.commit()
-    conn.close()
-    flash("Video deleted.", "info")
-    return redirect(url_for("admin"))
-
-# Similar routes for delete_comment, grant_premium, kick_user, mark_report_reviewed...
-
-if __name__ == "__main__":
-    if not os.path.exists(DB_PATH):
-        conn = get_db()
-        cur = conn.cursor()
-        # Schema creation
-        cur.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT, premium INTEGER)")
-        cur.execute("CREATE TABLE videos (id INTEGER PRIMARY KEY, title TEXT, uploader TEXT, likes INTEGER)")
-        cur.execute("CREATE TABLE comments (id INTEGER PRIMARY KEY, video_id INTEGER, user TEXT, text TEXT)")
-        cur.execute("CREATE TABLE chat (id INTEGER PRIMARY KEY, user TEXT, message TEXT)")
-        cur.execute("CREATE TABLE subscriptions (id INTEGER PRIMARY KEY, user TEXT, creator TEXT)")
-        cur.execute("CREATE TABLE reports (id INTEGER PRIMARY KEY, reporter TEXT, reported_user TEXT, reason TEXT, status TEXT)")
-        conn.commit()
-        conn.close()
+    # Run the app
     app.run(debug=True)
