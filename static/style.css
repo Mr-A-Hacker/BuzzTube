@@ -3,8 +3,8 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Segoe UI', sans-serif;
-  background: radial-gradient(circle at top left, #0d0d0d, #000000);
-  color: #e0e0e0;
+  background: linear-gradient(to bottom right, #0a0a0a, #000000);
+  color: #f0f0f0;
 }
 
 .container {
@@ -15,12 +15,12 @@ body {
 
 /* === Neon Text === */
 .neon-text {
-  color: #39ff14;
+  color: #ff00cc;
   text-shadow:
-    0 0 5px #39ff14,
-    0 0 10px #39ff14,
-    0 0 20px #39ff14,
-    0 0 40px #39ff14;
+    0 0 5px #ff00cc,
+    0 0 10px #ff00cc,
+    0 0 20px #ff00cc,
+    0 0 40px #ff00cc;
 }
 
 .big-title {
@@ -31,11 +31,11 @@ body {
 
 /* === Cards === */
 .card {
-  background: rgba(20, 20, 20, 0.85);
+  background: rgba(25, 25, 25, 0.85);
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 2rem;
-  box-shadow: 0 0 20px rgba(57, 255, 20, 0.2);
+  box-shadow: 0 0 20px rgba(255, 0, 204, 0.3);
   transition: transform 0.2s ease;
 }
 
@@ -46,31 +46,30 @@ body {
 /* === Buttons === */
 .btn {
   display: inline-block;
-  background: #39ff14;
-  color: #0d0d0d;
+  background: linear-gradient(to right, #ff00cc, #6600ff);
+  color: #fff;
   padding: 0.6rem 1.2rem;
   margin: 0.5rem 0.3rem;
   border-radius: 8px;
   font-weight: bold;
   text-decoration: none;
   transition: 0.3s ease;
+  box-shadow: 0 0 10px #ff00cc;
 }
 
 .btn:hover {
-  background: #0d0d0d;
-  color: #39ff14;
-  box-shadow: 0 0 10px #39ff14;
+  background: linear-gradient(to right, #6600ff, #ff00cc);
+  box-shadow: 0 0 15px #ff00cc;
 }
 
 .btn.danger {
-  background: #ff1744;
+  background: linear-gradient(to right, #ff1744, #ff6f00);
   color: #fff;
 }
 
 .btn.danger:hover {
-  background: #0d0d0d;
-  color: #ff1744;
-  box-shadow: 0 0 10px #ff1744;
+  background: linear-gradient(to right, #ff6f00, #ff1744);
+  box-shadow: 0 0 15px #ff1744;
 }
 
 /* === Navbar === */
@@ -81,14 +80,14 @@ body {
   justify-content: center;
   flex-wrap: wrap;
   gap: 1rem;
-  box-shadow: 0 0 10px #39ff14;
+  box-shadow: 0 0 10px #ff00cc;
   position: sticky;
   top: 0;
   z-index: 1000;
 }
 
 .nav-link {
-  color: #e0e0e0;
+  color: #f0f0f0;
   text-decoration: none;
   font-weight: bold;
   padding: 0.5rem 1rem;
@@ -97,9 +96,9 @@ body {
 }
 
 .nav-link:hover {
-  background: #39ff14;
+  background: #ff00cc;
   color: #0d0d0d;
-  box-shadow: 0 0 10px #39ff14;
+  box-shadow: 0 0 10px #ff00cc;
 }
 
 /* === Flash Messages === */
@@ -116,10 +115,10 @@ body {
   font-weight: bold;
 }
 
-.flash.success { background: #39ff14; color: #0d0d0d; }
-.flash.warning { background: #ffeb3b; color: #0d0d0d; }
+.flash.success { background: #6600ff; color: #fff; }
+.flash.warning { background: #ff6f00; color: #fff; }
 .flash.danger  { background: #ff1744; color: #fff; }
-.flash.info    { background: #2196f3; color: #fff; }
+.flash.info    { background: #00bcd4; color: #fff; }
 
 /* === Forms === */
 form label {
@@ -138,7 +137,7 @@ form select {
   border: none;
   border-radius: 6px;
   background: #1a1a1a;
-  color: #e0e0e0;
+  color: #f0f0f0;
 }
 
 form textarea {
