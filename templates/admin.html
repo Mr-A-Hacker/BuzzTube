@@ -4,90 +4,86 @@
 <div class="container">
   <h1 class="neon-text big-title">Admin Dashboard</h1>
 
-  <!-- Videos management -->
+  <!-- Videos Section -->
   <div class="card">
-    <h2 class="neon-text">Manage Videos</h2>
-    {% if videos %}
-      <ul class="video-list">
-        {% for v in videos %}
-          <li class="video-item">
-            <strong>{{ v.title }}</strong> by {{ v.uploader }} | Likes: {{ v.likes }}
-            <form method="post" action="{{ url_for('admin_delete_video', id=v.id) }}" style="display:inline;">
-              <button type="submit" class="btn danger">Delete</button>
-            </form>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>No videos found.</p>
-    {% endif %}
+    <h2 class="neon-text">Videos</h2>
+    <ul class="video-list">
+      {% for v in videos %}
+        <li>
+          <strong>{{ v['title'] }}</strong> by {{ v['uploader'] }}
+          <span class="meta">Video #{{ v['id'] }} • Likes: {{ v['likes'] }}</span>
+          <form action="{{ url_for('admin_delete_video', id=v['id']) }}" method="POST" style="display:inline;">
+            <button type="submit" class="btn danger">Delete</button>
+          </form>
+        </li>
+      {% else %}
+        <li class="meta">No videos found.</li>
+      {% endfor %}
+    </ul>
   </div>
 
-  <!-- Comments management -->
+  <!-- Comments Section -->
   <div class="card">
-    <h2 class="neon-text">Manage Comments</h2>
-    {% if comments %}
-      <ul class="comment-list">
-        {% for c in comments %}
-          <li class="comment-item">
-            <strong>{{ c.user }}</strong>: {{ c.text }}
-            <form method="post" action="{{ url_for('admin_delete_comment', id=c.id) }}" style="display:inline;">
-              <button type="submit" class="btn danger">Delete</button>
-            </form>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>No comments found.</p>
-    {% endif %}
+    <h2 class="neon-text">Comments</h2>
+    <ul class="comment-list">
+      {% for c in comments %}
+        <li>
+          <strong>{{ c['user'] }}</strong>: {{ c['text'] }}
+          <span class="meta">Comment #{{ c['id'] }} on Video #{{ c['video_id'] }}</span>
+          <form action="{{ url_for('admin_delete_comment', id=c['id']) }}" method="POST" style="display:inline;">
+            <button type="submit" class="btn danger">Delete</button>
+          </form>
+        </li>
+      {% else %}
+        <li class="meta">No comments found.</li>
+      {% endfor %}
+    </ul>
   </div>
 
-  <!-- Users management -->
+  <!-- Users Section -->
   <div class="card">
-    <h2 class="neon-text">Manage Users</h2>
-    {% if users %}
-      <ul class="user-list">
-        {% for u in users %}
-          <li class="user-item">
-            {{ u.username }} | Premium: {{ u.premium }}
-            <form method="post" action="{{ url_for('admin_grant_premium', id=u.id) }}" style="display:inline;">
+    <h2 class="neon-text">Users</h2>
+    <ul class="user-list">
+      {% for u in users %}
+        <li>
+          <strong>{{ u['username'] }}</strong>
+          <span class="meta">User #{{ u['id'] }}{% if u['premium'] %} • Premium{% endif %}</span>
+
+          {% if u['username'] != 'admin' %}
+            <form action="{{ url_for('admin_grant_premium', id=u['id']) }}" method="POST" style="display:inline;">
               <button type="submit" class="btn">Grant Premium</button>
             </form>
-            <form method="post" action="{{ url_for('admin_kick_user', id=u.id) }}" style="display:inline;">
+            <form action="{{ url_for('admin_kick_user', id=u['id']) }}" method="POST" style="display:inline;">
               <button type="submit" class="btn danger">Kick</button>
             </form>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>No users found.</p>
-    {% endif %}
+          {% else %}
+            <span class="meta">Protected</span>
+          {% endif %}
+        </li>
+      {% else %}
+        <li class="meta">No users found.</li>
+      {% endfor %}
+    </ul>
   </div>
 
-  <!-- Reports management -->
+  <!-- Reports Section -->
   <div class="card">
     <h2 class="neon-text">Reports</h2>
-    {% if reports %}
-      <ul class="report-list">
-        {% for r in reports %}
-          <li class="report-item">
-            Reported by {{ r.reporter }} against {{ r.reported_user }} | Reason: {{ r.reason }} | Status: {{ r.status }}
-            <form method="post" action="{{ url_for('admin_mark_report_reviewed', id=r.id) }}" style="display:inline;">
+    <ul class="report-list">
+      {% for r in reports %}
+        <li>
+          <strong>{{ r['reporter'] }}</strong> reported <strong>{{ r['reported_user'] }}</strong>
+          <span class="meta">Reason: {{ r['reason'] }} • Status: {{ r['status'] }}</span>
+          {% if r['status'] == 'pending' %}
+            <form action="{{ url_for('admin_mark_report_reviewed', id=r['id']) }}" method="POST" style="display:inline;">
               <button type="submit" class="btn">Mark Reviewed</button>
             </form>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>No reports found.</p>
-    {% endif %}
-  </div>
-
-  <!-- Navigation -->
-  <div class="card">
-    <a href="{{ url_for('home') }}" class="btn">Back to Home</a>
-    <a href="{{ url_for('leaderboard') }}" class="btn">Leaderboard</a>
-    <a href="{{ url_for('publichat') }}" class="btn">Publichat</a>
+          {% endif %}
+        </li>
+      {% else %}
+        <li class="meta">No reports found.</li>
+      {% endfor %}
+    </ul>
   </div>
 </div>
 
