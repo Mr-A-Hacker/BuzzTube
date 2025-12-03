@@ -7,30 +7,35 @@
 
 body {
   font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: #f5f7fa;
-  color: #333;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  color: #eee;
   line-height: 1.6;
+  perspective: 1000px; /* enables 3D transforms */
 }
 
 /* Navbar */
 nav {
-  background: linear-gradient(90deg, #0077ff, #00c6ff);
+  background: linear-gradient(90deg, #ff0080, #7928ca, #2afadf);
   padding: 1rem;
   color: #fff;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  transform: translateZ(20px);
 }
 
 nav a {
   color: #fff;
   text-decoration: none;
   margin: 0 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
+  transition: transform 0.3s ease, color 0.3s ease;
 }
 
 nav a:hover {
-  text-decoration: underline;
+  color: #ffeb3b;
+  transform: scale(1.2) rotateY(10deg);
 }
 
 /* Container */
@@ -42,66 +47,120 @@ nav a:hover {
 
 /* Cards (videos, posts, etc.) */
 .card {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  transition: transform 0.2s ease;
+  background: #1e1e2f;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
 }
 
 .card:hover {
-  transform: translateY(-3px);
+  transform: rotateY(8deg) translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.8);
 }
 
 /* Buttons */
 button, .btn {
-  background: #0077ff;
+  background: linear-gradient(135deg, #ff0080, #ff8c00);
   color: #fff;
   border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 4px;
+  padding: 0.7rem 1.4rem;
+  border-radius: 6px;
   cursor: pointer;
-  font-weight: 500;
-  transition: background 0.2s ease;
+  font-weight: 600;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.4);
 }
 
 button:hover, .btn:hover {
-  background: #005fcc;
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.6);
 }
 
-/* Forms */
+/* Inputs */
 input, textarea, select {
   width: 100%;
-  padding: 0.6rem;
-  margin: 0.5rem 0;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 0.7rem;
+  margin: 0.6rem 0;
+  border: 2px solid #444;
+  border-radius: 6px;
+  background: #2c2c3c;
+  color: #fff;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 input:focus, textarea:focus, select:focus {
-  border-color: #0077ff;
+  border-color: #ff0080;
+  box-shadow: 0 0 12px #ff0080;
   outline: none;
 }
 
 /* Flash messages */
 .flash {
-  padding: 0.8rem;
+  padding: 1rem;
   margin-bottom: 1rem;
-  border-radius: 4px;
-  font-weight: 500;
+  border-radius: 6px;
+  font-weight: 600;
+  transform: translateZ(15px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.5);
 }
 
-.flash.success { background: #d4edda; color: #155724; }
-.flash.warning { background: #fff3cd; color: #856404; }
-.flash.danger  { background: #f8d7da; color: #721c24; }
-.flash.info    { background: #d1ecf1; color: #0c5460; }
+.flash.success { background: #28a745; color: #fff; }
+.flash.warning { background: #ffc107; color: #222; }
+.flash.danger  { background: #dc3545; color: #fff; }
+.flash.info    { background: #17a2b8; color: #fff; }
 
 /* Footer */
 footer {
-  background: #222;
+  background: #111;
   color: #aaa;
   text-align: center;
   padding: 1rem;
   margin-top: 2rem;
+  box-shadow: 0 -8px 20px rgba(0,0,0,0.6);
+  transform: translateZ(10px);
+}
+
+/* Splash screen */
+#splash {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: radial-gradient(circle at center, #0f2027, #203a43, #2c5364);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  z-index: 9999;
+  animation: fadeOut 1s ease forwards;
+  animation-delay: 3s; /* stays for 3 seconds */
+}
+
+.splash-logo {
+  font-size: 4rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #ff0080, #ff8c00, #40e0d0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transform: rotateY(0deg);
+  animation: spin3D 3s ease-in-out;
+}
+
+.splash-sub {
+  margin-top: 1rem;
+  font-size: 1.2rem;
+  opacity: 0.8;
+}
+
+@keyframes spin3D {
+  0% { transform: rotateY(0deg) scale(0.8); }
+  50% { transform: rotateY(180deg) scale(1.2); }
+  100% { transform: rotateY(360deg) scale(1); }
+}
+
+@keyframes fadeOut {
+  to { opacity: 0; visibility: hidden; }
 }
