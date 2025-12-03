@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 import sqlite3, os, time
 from functools import wraps
 import werkzeug
@@ -38,6 +39,16 @@ def init_db():
             uploader TEXT NOT NULL,
             filepath TEXT,
             likes INTEGER DEFAULT 0
+        )
+    """)
+
+    # Likes (new table to prevent duplicates)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS likes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            video_id INTEGER,
+            user TEXT,
+            UNIQUE(video_id, user)
         )
     """)
 
@@ -109,6 +120,8 @@ def premium_required(f):
 
         return f(*args, **kwargs)
     return decorated_function
+
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
@@ -227,7 +240,6 @@ def upload():
     return render_template("upload.html")
 
 
-
 @app.route("/leaderboard")
 @premium_required
 def leaderboard():
@@ -237,8 +249,6 @@ def leaderboard():
     videos = cur.fetchall()
     conn.close()
     return render_template("leaderboard.html", videos=videos)
-
-
 @app.route("/publichat", methods=["GET", "POST"])
 @premium_required
 def publichat():
@@ -288,10 +298,38 @@ def settings():
 def like_video(id):
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("UPDATE videos SET likes = likes + 1 WHERE id=?", (id,))
+
+    # Get video info
+    cur.execute("SELECT * FROM videos WHERE id=?", (id,))
+    video = cur.fetchone()
+    if not video:
+        conn.close()
+        flash("Video not found.", "danger")
+        return redirect(url_for("home"))
+
+    # Prevent self-like
+    if video["uploader"] == session["user"]:
+        conn.close()
+        flash("You cannot like your own video.", "warning")
+        return redirect(url_for("video", id=id))
+
+    # Check if user already liked
+    cur.execute("SELECT * FROM likes WHERE video_id=? AND user=?", (id, session["user"]))
+    existing = cur.fetchone()
+
+    if existing:
+        # Unlike (remove record and decrement counter)
+        cur.execute("DELETE FROM likes WHERE video_id=? AND user=?", (id, session["user"]))
+        cur.execute("UPDATE videos SET likes = likes - 1 WHERE id=?", (id,))
+        flash("You unliked the video.", "info")
+    else:
+        # Like (insert record and increment counter)
+        cur.execute("INSERT INTO likes (video_id, user) VALUES (?, ?)", (id, session["user"]))
+        cur.execute("UPDATE videos SET likes = likes + 1 WHERE id=?", (id,))
+        flash("You liked the video!", "success")
+
     conn.commit()
     conn.close()
-    flash("You liked the video!", "success")
     return redirect(url_for("video", id=id))
 
 
@@ -300,11 +338,25 @@ def like_video(id):
 def follow_user(username):
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("INSERT INTO follows (follower, following) VALUES (?, ?)",
-                (session["user"], username))
-    conn.commit()
+
+    # Prevent following yourself
+    if username == session["user"]:
+        conn.close()
+        flash("You cannot follow yourself.", "warning")
+        return redirect(url_for("profile"))
+
+    # Prevent duplicate follows
+    cur.execute("SELECT * FROM follows WHERE follower=? AND following=?", (session["user"], username))
+    existing = cur.fetchone()
+
+    if existing:
+        flash(f"You already follow {username}.", "info")
+    else:
+        cur.execute("INSERT INTO follows (follower, following) VALUES (?, ?)", (session["user"], username))
+        conn.commit()
+        flash(f"You are now following {username}!", "success")
+
     conn.close()
-    flash(f"You are now following {username}!", "success")
     return redirect(url_for("profile"))
 @app.route("/admin")
 def admin_dashboard():
