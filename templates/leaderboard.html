@@ -2,97 +2,135 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Leaderboard - BuzzTub</title>
+    <title>BuzzTub Leaderboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #0d0d0d;
+            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+            text-align: center;
+        }
+        h1 {
+            color: #ff00cc;
+            text-shadow: 0 0 10px #ff00cc;
+            margin-top: 30px;
+        }
+        canvas {
+            margin: 30px auto;
+            display: block;
+            max-width: 90%;
+        }
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            width: 80%;
+            background-color: #1a1a1a;
+            box-shadow: 0 0 10px #ff00cc;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #ff00cc;
+            color: #fff;
+        }
+        th {
+            background-color: #330033;
+        }
+        .nav-buttons {
+            margin-top: 30px;
+        }
+        .nav-buttons a {
+            display: inline-block;
+            margin: 10px;
+            padding: 12px 24px;
+            background-color: #ff00cc;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            box-shadow: 0 0 10px #ff00cc;
+            transition: transform 0.2s;
+        }
+        .nav-buttons a:hover {
+            transform: scale(1.05);
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>Top 10 Videos Leaderboard</h1>
-    </header>
+    <h1>BuzzTub Leaderboard</h1>
 
-    <main>
-        <!-- Chart -->
-        <section>
-            <canvas id="leaderboardChart" width="800" height="400"></canvas>
-        </section>
+    <canvas id="leaderboardChart" width="800" height="400"></canvas>
 
-        <script>
-            const ctx = document.getElementById('leaderboardChart').getContext('2d');
-            const leaderboardChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: [
-                        {% for title in titles %}
-                            "{{ title }}",
-                        {% endfor %}
-                    ],
-                    datasets: [{
-                        label: 'Likes',
-                        data: [
-                            {% for like in likes %}
-                                {{ like }},
-                            {% endfor %}
-                        ],
-                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
+    <script>
+        const ctx = document.getElementById('leaderboardChart').getContext('2d');
+        const leaderboardChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [{% for title in titles %}"{{ title }}",{% endfor %}],
+                datasets: [{
+                    label: 'Likes',
+                    data: [{% for like in likes %}{{ like }},{% endfor %}],
+                    backgroundColor: 'rgba(255, 0, 204, 0.6)',
+                    borderColor: 'rgba(255, 0, 204, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: { display: false },
+                    title: {
+                        display: true,
+                        text: 'Top 5 Videos by Likes',
+                        color: '#ff00cc',
+                        font: { size: 18 }
+                    }
                 },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { display: false },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#fff' },
                         title: {
                             display: true,
-                            text: 'BuzzTub Leaderboard (Likes)'
+                            text: 'Likes',
+                            color: '#ff00cc'
                         }
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Number of Likes'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Video Title'
-                            }
+                    x: {
+                        ticks: { color: '#fff' },
+                        title: {
+                            display: true,
+                            text: 'Video Title',
+                            color: '#ff00cc'
                         }
                     }
                 }
-            });
-        </script>
+            }
+        });
+    </script>
 
-        <!-- Table for clarity -->
-        <section>
-            <h2>Leaderboard Table</h2>
-            <table border="1" cellpadding="8" cellspacing="0">
-                <thead>
-                    <tr>
-                        <th>Rank</th>
-                        <th>Title</th>
-                        <th>Likes</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for v in videos %}
-                        <tr>
-                            <td>{{ loop.index }}</td>
-                            <td>{{ v['title'] }}</td>
-                            <td>{{ v['likes'] }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </section>
-    </main>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Title</th>
+                <th>Likes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for v in videos %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ v['title'] }}</td>
+                    <td>{{ v['likes'] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
-    <footer>
+    <div class="nav-buttons">
         <a href="{{ url_for('home') }}">Back to Home</a>
-    </footer>
+        <a href="{{ url_for('publichat') }}">Publichat</a>
+        <a href="{{ url_for('upload') }}">Upload Video</a>
+    </div>
 </body>
 </html>
