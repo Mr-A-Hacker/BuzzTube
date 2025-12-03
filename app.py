@@ -105,7 +105,6 @@ def save_upload(file_storage, allowed=('mp4', 'png', 'jpg', 'jpeg', 'gif')):
         counter += 1
     file_storage.save(path)
     return filename
-
 # ----------------------------
 # Premium enforcement
 # ----------------------------
@@ -122,14 +121,6 @@ def enforce_premium_timer():
                 session.clear()
                 flash("Free access expired. Please upgrade to BuzzTub Premium.", "danger")
                 return redirect(url_for('login'))
-
-
-from datetime import datetime
-
-@app.context_processor
-def inject_now():
-    return {'datetime': datetime}
-
 
 # ----------------------------
 # Routes: Auth
@@ -173,6 +164,7 @@ def logout():
     session.clear()
     flash("Logged out.", "info")
     return redirect(url_for('home'))
+
 # ----------------------------
 # Routes: Home + Upload
 # ----------------------------
@@ -221,21 +213,6 @@ def video(id):
     comments = Comment.query.filter_by(video_id=v.id).order_by(Comment.created_at.asc()).all()
     return render_template('video.html', video=v, comments=comments)
 
-@app.route('/subscribe/<int:id>', methods=['POST'])
-def subscribe(id):
-    if not current_user():
-        return require_login()
-    v = Video.query.get_or_404(id)
-    existing = Subscription.query.filter_by(subscriber=current_user(), creator=v.uploader).first()
-    if not existing:
-        sub = Subscription(subscriber=current_user(), creator=v.uploader, video_id=v.id)
-        db.session.add(sub)
-        db.session.commit()
-        flash(f"Subscribed to {v.uploader}.", "success")
-    else:
-        flash("Already subscribed.", "info")
-    return redirect(url_for('video', id=id))
-
 @app.route('/like/<int:id>', methods=['POST'])
 def like(id):
     if not current_user():
@@ -260,6 +237,7 @@ def comment(id):
     else:
         flash("Comment cannot be empty.", "warning")
     return redirect(url_for('video', id=id))
+
 # ----------------------------
 # Routes: Leaderboard
 # ----------------------------
@@ -363,7 +341,7 @@ def kick_user(id):
     return redirect(url_for('admin'))
 
 # ----------------------------
-# Routes: Settings (profile pic, password)
+# Routes: Settings
 # ----------------------------
 @app.route('/settings')
 def settings():
@@ -426,7 +404,7 @@ def mark_report_reviewed(id):
     return redirect(url_for('admin'))
 
 # ----------------------------
-# Routes: Profile (self + public)
+# Routes: Profile
 # ----------------------------
 @app.route('/profile')
 def profile():
