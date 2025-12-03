@@ -2,34 +2,35 @@
 {% block content %}
 
 <div class="container">
-  <h1 class="neon-text">Settings</h1>
+  <h1 class="neon-text big-title">Settings</h1>
 
-  <!-- Profile picture -->
   <div class="card">
-    <h2 class="neon-text">Profile Picture</h2>
-    {% if user.profile_pic %}
-      <img src="{{ url_for('uploads', filename=user.profile_pic) }}" alt="Profile Picture" style="max-width:150px; border-radius:50%; margin-bottom:1rem;">
-    {% else %}
-      <p>No profile picture set.</p>
-    {% endif %}
-    <form method="post" action="{{ url_for('update_pic') }}" enctype="multipart/form-data">
-      <input type="file" name="pic" accept="image/png,image/jpeg" required>
-      <button type="submit" class="btn">Update Picture</button>
+    <form method="post" action="{{ url_for('settings') }}">
+      <!-- Profile picture placeholder -->
+      <label for="profile_pic" class="neon-text">Profile Picture (coming soon)</label>
+      <input type="file" id="profile_pic" name="profile_pic" disabled>
+      <p class="meta">Profile picture upload disabled in this demo.</p>
+
+      <!-- Password change -->
+      <label for="password" class="neon-text">Change Password</label>
+      <input type="password" id="password" name="password" placeholder="New password">
+
+      <!-- Theme toggle -->
+      <label for="theme" class="neon-text">Theme</label>
+      <select id="theme" name="theme">
+        <option value="light">Light Mode</option>
+        <option value="dark">Dark Mode</option>
+      </select>
+
+      <button type="submit" class="btn">Save Settings</button>
     </form>
   </div>
 
-  <!-- Change password -->
+  <!-- Navigation -->
   <div class="card">
-    <h2 class="neon-text">Change Password</h2>
-    <form method="post" action="{{ url_for('change_password') }}">
-      <label for="old">Old Password</label>
-      <input type="password" id="old" name="old" required>
-
-      <label for="new">New Password</label>
-      <input type="password" id="new" name="new" required>
-
-      <button type="submit" class="btn">Change Password</button>
-    </form>
+    <a href="{{ url_for('home') }}" class="btn">Back to Home</a>
+    <a href="{{ url_for('profile') }}" class="btn">My Profile</a>
+    <a href="{{ url_for('publichat') }}" class="btn">Publichat</a>
   </div>
 </div>
 
