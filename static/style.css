@@ -1,10 +1,11 @@
-/* Global reset */
+/* Reset */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+/* Global */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: radial-gradient(circle at top, #0d0d0d, #000);
@@ -30,7 +31,7 @@ nav a {
   text-decoration: none;
   margin: 0 0.75rem;
   font-weight: bold;
-  transition: color 0.3s ease;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
 }
 
 nav a:hover {
@@ -67,6 +68,12 @@ nav a:hover {
   letter-spacing: 1px;
 }
 
+.neon-text.big-title {
+  font-size: 3rem;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
 /* Buttons */
 .btn {
   background: linear-gradient(90deg, #0ff, #00f);
@@ -84,6 +91,23 @@ nav a:hover {
   background: linear-gradient(90deg, #ff0, #f0f);
   color: #111;
   box-shadow: 0 0 15px #ff0;
+}
+
+/* Forms */
+input[type="text"], input[type="password"], input[type="file"], textarea {
+  width: 100%;
+  padding: 0.6rem;
+  margin: 0.5rem 0;
+  border: none;
+  border-radius: 6px;
+  background: #111;
+  color: #0ff;
+  box-shadow: inset 0 0 10px rgba(0,255,255,0.3);
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  box-shadow: 0 0 15px #0ff;
 }
 
 /* Flash messages */
@@ -146,4 +170,20 @@ nav a:hover {
 }
 body.loaded #main-content {
   opacity: 1;
+}
+
+/* Footer */
+footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+  background: #111;
+  padding: 0.5rem 0;
+  box-shadow: 0 -2px 10px #0ff;
+}
+
+footer p {
+  color: #0ff;
+  font-size: 0.9rem;
 }
