@@ -1,18 +1,18 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-import sqlite3, time
+import sqlite3, time, os
 from functools import wraps
 import cloudinary
 import cloudinary.uploader
 
 app = Flask(__name__)
-app.secret_key = "supersecretkey"   # replace with env var in production
+app.secret_key = "supersecretkey"  # Replace with env var in production
 DB_FILE = "buzz.db"
 
-# Configure Cloudinary (use environment variables in production)
+# Cloudinary config using environment variables
 cloudinary.config(
-    cloud_name="your_cloud_name",
-    api_key="your_api_key",
-    api_secret="your_api_secret"
+    cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key = os.getenv("CLOUDINARY_API_KEY"),
+    api_secret = os.getenv("CLOUDINARY_API_SECRET")
 )
 
 def get_db():
@@ -24,7 +24,6 @@ def init_db():
     conn = get_db()
     cur = conn.cursor()
 
-    # Users
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,7 +33,6 @@ def init_db():
         )
     """)
 
-    # Videos
     cur.execute("""
         CREATE TABLE IF NOT EXISTS videos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,7 +43,6 @@ def init_db():
         )
     """)
 
-    # Comments
     cur.execute("""
         CREATE TABLE IF NOT EXISTS comments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -56,7 +53,6 @@ def init_db():
         )
     """)
 
-    # Messages (Publichat)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -65,7 +61,6 @@ def init_db():
         )
     """)
 
-    # Reports (Admin)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS reports (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -76,7 +71,6 @@ def init_db():
         )
     """)
 
-    # Follows
     cur.execute("""
         CREATE TABLE IF NOT EXISTS follows (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -88,7 +82,6 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Initialize DB at startup
 init_db()
 def premium_required(f):
     @wraps(f)
@@ -106,7 +99,7 @@ def premium_required(f):
         if user and user["premium"] == 0:
             start = session.get("login_time", 0)
             now = int(time.time())
-            if now - start > 600:  # 10 minutes
+            if now - start > 600:
                 session.clear()
                 flash("Your free 10‑minute session expired. Upgrade to premium!", "danger")
                 return redirect(url_for("login"))
@@ -206,9 +199,11 @@ def upload():
 
         if file and file.filename != "":
             try:
+                # Upload to Cloudinary instead of local disk
                 result = cloudinary.uploader.upload(file, resource_type="video")
                 web_path = result["secure_url"]
 
+                # Save Cloudinary URL in DB
                 conn = get_db()
                 cur = conn.cursor()
                 cur.execute("INSERT INTO videos (title, uploader, filepath) VALUES (?, ?, ?)",
@@ -218,6 +213,7 @@ def upload():
 
                 flash("Video uploaded successfully!", "success")
                 return redirect(url_for("home"))
+
             except Exception as e:
                 flash(f"Upload failed: {e}", "danger")
                 return redirect(url_for("upload"))
@@ -225,7 +221,6 @@ def upload():
             flash("No file selected.", "danger")
 
     return render_template("upload.html")
-
 @app.route("/leaderboard")
 @premium_required
 def leaderboard():
@@ -253,7 +248,6 @@ def publichat():
     conn.close()
 
     return render_template("publichat.html", messages=messages)
-
 @app.route("/profile")
 @premium_required
 def profile():
@@ -326,6 +320,78 @@ def admin_dashboard():
                            users=users,
                            reports=reports,
                            messages=messages)
+@app.route("/admin/delete_video/<int:id>", methods=["POST"])
+def admin_delete_video(id):
+    if not session.get("admin"):
+        return redirect(url_for("home"))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM videos WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+    flash("Video deleted.", "info")
+    return redirect(url_for("admin_dashboard"))
+
+@app.route("/admin/delete_comment/<int:id>", methods=["POST"])
+def admin_delete_comment(id):
+    if not session.get("admin"):
+        return redirect(url_for("home"))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM comments WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+    flash("Comment deleted.", "info")
+    return redirect(url_for("admin_dashboard"))
+
+@app.route("/admin/delete_message/<int:id>", methods=["POST"])
+def admin_delete_message(id):
+    if not session.get("admin"):
+        return redirect(url_for("home"))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM messages WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+    flash("Message deleted.", "info")
+    return redirect(url_for("admin_dashboard"))
+
+@app.route("/admin/grant_premium/<int:id>", methods=["POST"])
+def admin_grant_premium(id):
+    if not session.get("admin"):
+        return redirect(url_for("home"))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE users SET premium=1 WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+    flash("Premium granted.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+@app.route("/admin/kick_user/<int:id>", methods=["POST"])
+def admin_kick_user(id):
+    if not session.get("admin"):
+        return redirect(url_for("home"))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM users WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+    flash("User kicked.", "info")
+    return redirect(url_for("admin_dashboard"))
+
+@app.route("/admin/mark_report_reviewed/<int:id>", methods=["POST"])
+def admin_mark_report_reviewed(id):
+    if not session.get("admin"):
+        return redirect(url_for("home"))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE reports SET status='reviewed' WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+    flash("Report marked as reviewed.", "success")
+    return redirect(url_for("admin_dashboard"))
 if __name__ == "__main__":
     init_db()
     app.run(host="0.0.0.0", port=5000, debug=True)
+
