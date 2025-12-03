@@ -3,42 +3,42 @@
 <head>
   <meta charset="UTF-8">
   <title>BuzzTub</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Link to your static CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='splash.js') }}" defer></script>
 </head>
 <body>
-  <!-- Splash screen -->
+
+  <!-- Splash Screen -->
   <div id="splash">
     <div class="splash-logo">BuzzTub</div>
-    <div class="splash-sub">Bubble‑branded video hub</div>
+    <div class="splash-sub">Where creators rise</div>
   </div>
 
-  <!-- Navbar -->
-  <nav>
-    <div class="nav-left">
-      <a href="{{ url_for('home') }}">Home</a>
-      <a href="{{ url_for('leaderboard') }}">Leaderboard</a>
-      <a href="{{ url_for('publichat') }}">Publichat</a>
-    </div>
-    <div class="nav-right">
-      {% if session.get('user') %}
-        <a href="{{ url_for('profile') }}">Profile</a>
-        <a href="{{ url_for('settings') }}">Settings</a>
-        {% if session.get('is_admin') %}
-          <a href="{{ url_for('admin') }}">Admin</a>
+  <!-- Main Content -->
+  <div id="main-content">
+    <!-- Navbar -->
+    <nav>
+      <div>
+        <a href="{{ url_for('home') }}">Home</a>
+        <a href="{{ url_for('leaderboard') }}">Leaderboard</a>
+        <a href="{{ url_for('publichat') }}">Publichat</a>
+      </div>
+      <div>
+        {% if session.get('user') %}
+          <a href="{{ url_for('profile') }}">Profile</a>
+          <a href="{{ url_for('settings') }}">Settings</a>
+          {% if session.get('admin') %}
+            <a href="{{ url_for('admin') }}">Admin</a>
+          {% endif %}
+          <a href="{{ url_for('logout') }}">Logout</a>
+        {% else %}
+          <a href="{{ url_for('login') }}">Login</a>
+          <a href="{{ url_for('signup') }}">Signup</a>
         {% endif %}
-        <a href="{{ url_for('logout') }}">Logout</a>
-      {% else %}
-        <a href="{{ url_for('login') }}">Login</a>
-        <a href="{{ url_for('signup') }}">Signup</a>
-      {% endif %}
-    </div>
-  </nav>
+      </div>
+    </nav>
 
-  <!-- Flash messages -->
-  <div class="container">
+    <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
@@ -46,19 +46,15 @@
         {% endfor %}
       {% endif %}
     {% endwith %}
-  </div>
 
-  <!-- Main content -->
-  <div id="main-content" class="container">
+    <!-- Page Content -->
     {% block content %}{% endblock %}
   </div>
 
   <!-- Footer -->
-  <footer>
-    <p>© 2025 BuzzTub. All rights reserved.</p>
+  <footer style="position: fixed; bottom: 0; width: 100%; text-align: center; background: #111; padding: 0.5rem 0; box-shadow: 0 -2px 10px #0ff;">
+    <p style="color: #0ff;">© 2025 BuzzTub. All rights reserved.</p>
   </footer>
 
-  <!-- Splash JS -->
-  <script src="{{ url_for('static', filename='splash.js') }}"></script>
 </body>
 </html>
