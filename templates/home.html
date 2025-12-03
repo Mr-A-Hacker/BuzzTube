@@ -4,6 +4,24 @@
 <div class="container">
   <h1 class="neon-text big-title">BuzzTub Home</h1>
 
+  <!-- Ads for non-premium users -->
+  {% if premium == 0 %}
+  <div id="ad-banner" class="card flash" style="margin:20px auto; text-align:center; border:2px solid #ff00cc; box-shadow:0 0 15px #ff00cc;">
+    <h3 class="neon-text">Sponsored</h3>
+    <p>Upgrade to Premium to remove ads!</p>
+    <img src="{{ url_for('static', filename='ads/ad1.png') }}" alt="Ad" style="max-width:100%; border-radius:8px;">
+  </div>
+  <script>
+    // Hide ad after 10 seconds
+    setTimeout(function() {
+      const ad = document.getElementById("ad-banner");
+      if (ad) {
+        ad.style.display = "none";
+      }
+    }, 10000);
+  </script>
+  {% endif %}
+
   <!-- Video Feed -->
   <ul class="video-list">
     {% for v in videos %}
