@@ -52,6 +52,12 @@
             </form>
             <a class="btn three-d-btn" href="{{ url_for('video', id=v['id']) }}">Watch</a>
           </div>
+
+          <!-- Comment Box -->
+          <form action="{{ url_for('video', id=v['id']) }}" method="POST" style="margin-top:15px;">
+            <input type="text" name="text" placeholder="Write a comment..." class="neon-input">
+            <button type="submit" class="btn three-d-btn">Post</button>
+          </form>
         </li>
       {% else %}
         <li class="meta">No videos found. Upload one to get started!</li>
@@ -112,6 +118,27 @@
   .three-d-btn:hover {
     transform: translateZ(30px) scale(1.1);
     box-shadow:0 0 40px #ff66cc;
+  }
+
+  .neon-input {
+    width: 70%;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background-color: #000;
+    color: #ff66cc;
+    font-size: 1em;
+    box-shadow: inset 0 0 10px #ff33aa, 0 0 15px #ff66cc;
+    outline: none;
+    transition: all 0.3s ease;
+  }
+  .neon-input::placeholder {
+    color: #ff99dd;
+    text-shadow: 0 0 5px #ff33aa;
+  }
+  .neon-input:focus {
+    box-shadow: inset 0 0 20px #ff66cc, 0 0 25px #ff33aa;
+    transform: scale(1.05);
   }
 </style>
 
