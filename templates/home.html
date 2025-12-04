@@ -2,12 +2,7 @@
 {% block content %}
 
 <!-- Splash Overlay -->
-<div id="splash" style="
-  position:fixed; inset:0;
-  background:#000; display:flex;
-  justify-content:center; align-items:center;
-  z-index:9999;
-">
+<div id="splash" class="splash">
   <h1 class="neon-text big-title splash-text">BuzzTube</h1>
 </div>
 
@@ -65,7 +60,13 @@
 
 <!-- Styles -->
 <style>
-  /* Splash animation */
+  /* Splash */
+  .splash {
+    position:fixed; inset:0;
+    background:#000; display:flex;
+    justify-content:center; align-items:center;
+    z-index:9999;
+  }
   .splash-text {
     animation: pulseScale 2s infinite;
     text-shadow: 0 0 20px #ff33aa, 0 0 40px #ff66cc, 0 0 60px #ff99dd;
@@ -78,7 +79,7 @@
     100% { transform: scale(1); }
   }
 
-  /* 3D cards */
+  /* Cards */
   .three-d-card {
     background:#1a1a1a; border-radius:12px; padding:16px; margin-bottom:20px;
     box-shadow: 0 0 20px #ff33aa;
@@ -92,7 +93,7 @@
 
   .three-d-text { text-shadow: 0 0 14px #ff33aa, 0 0 28px #ff66cc; }
 
-  /* 3D video */
+  /* Video */
   .three-d-video video {
     border-radius:12px; box-shadow: 0 0 30px #ff33aa;
     transform: rotateY(-5deg) translateZ(18px);
@@ -103,7 +104,7 @@
     box-shadow: 0 0 50px #ff66cc;
   }
 
-  /* 3D buttons */
+  /* Buttons */
   .three-d-btn {
     background:#ff33aa; color:#fff; border:none; padding:10px 18px; border-radius:10px; font-weight:700;
     box-shadow: 0 0 20px #ff33aa; transform: translateZ(12px);
@@ -116,7 +117,7 @@
     background:#ff66cc; color:#000;
   }
 
-  /* Neon text boxes */
+  /* Neon Text Boxes */
   .neon-form-inline {
     display:flex; gap:12px; align-items:flex-end; margin-top:16px; flex-wrap:wrap;
   }
@@ -189,10 +190,4 @@
         main.style.display = "block";
         if (callback) callback();
       }, 1200);
-    }, 1800);
-  }
-
-  window.addEventListener("load", () => { showSplash(); });
-</script>
-
-{% endblock %}
+    }, 1800
