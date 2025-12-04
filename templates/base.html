@@ -2,54 +2,145 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>BuzzTub</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <title>BuzzTube</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Neon Styling -->
+  <style>
+    body {
+      background-color: #0d0d0d;
+      color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .navbar {
+      background-color: #1a1a1a;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 0 10px #6600ff;
+    }
+    .navbar a {
+      color: #f0f0f0;
+      text-decoration: none;
+      margin: 0 10px;
+      font-weight: bold;
+    }
+    .navbar a:hover {
+      color: #00ffff;
+    }
+    .container {
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    .neon-text {
+      color: #00ffff;
+      text-shadow: 0 0 5px #00ffff, 0 0 10px #6600ff;
+    }
+    .big-title {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+    }
+    .card {
+      background-color: #1a1a1a;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 15px #6600ff;
+    }
+    .btn {
+      background-color: #6600ff;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-right: 5px;
+    }
+    .btn:hover {
+      background-color: #00ffff;
+      color: #000;
+    }
+    .flash {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 6px;
+    }
+    .flash.success { background-color: #004d00; color: #00ff00; }
+    .flash.danger { background-color: #4d0000; color: #ff3333; }
+    .flash.warning { background-color: #4d3300; color: #ffcc00; }
+    .flash.info { background-color: #00334d; color: #00ccff; }
+    .video-list { list-style: none; padding: 0; }
+    .video-list li { margin-bottom: 20px; }
+    .meta { font-size: 0.9em; color: #aaa; }
+    .search-bar {
+      display: inline-block;
+    }
+    .search-bar input {
+      padding: 6px;
+      border-radius: 6px;
+      border: none;
+    }
+    .search-bar button {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: none;
+      background-color: #6600ff;
+      color: #fff;
+      cursor: pointer;
+    }
+    .search-bar button:hover {
+      background-color: #00ffff;
+      color: #000;
+    }
+  </style>
 </head>
 <body>
 
-  <!-- Splash screen -->
-  <div class="splash">
-    <h1>BuzzTub</h1>
+  <!-- Navigation -->
+  <div class="navbar">
+    <div class="nav-left">
+      <a href="{{ url_for('home') }}">🏠 Home</a>
+      <a href="{{ url_for('leaderboard') }}">🏆 Leaderboard</a>
+      <a href="{{ url_for('publichat') }}">💬 Public Chat</a>
+      <a href="{{ url_for('upload') }}">⬆️ Upload</a>
+      <a href="{{ url_for('profile') }}">👤 Profile</a>
+      {% if session.get('admin') %}
+        <a href="{{ url_for('admin_dashboard') }}">⚙️ Admin</a>
+      {% endif %}
+    </div>
+    <div class="nav-right">
+      <form action="{{ url_for('search') }}" method="get" class="search-bar">
+        <input type="text" name="q" placeholder="Search..." required>
+        <button type="submit">🔍</button>
+      </form>
+      {% if session.get('user') %}
+        <a href="{{ url_for('logout') }}">🚪 Logout</a>
+      {% else %}
+        <a href="{{ url_for('login') }}">🔑 Login</a>
+        <a href="{{ url_for('signup') }}">📝 Signup</a>
+      {% endif %}
+    </div>
   </div>
 
-  <!-- Navigation bar -->
-  <nav class="navbar">
-    <a href="{{ url_for('home') }}" class="nav-link">Home</a>
-    <a href="{{ url_for('leaderboard') }}" class="nav-link">Leaderboard</a>
-    <a href="{{ url_for('publichat') }}" class="nav-link">Publichat</a>
-    <a href="{{ url_for('profile') }}" class="nav-link">Profile</a>
-    <a href="{{ url_for('settings') }}" class="nav-link">Settings</a>
-
-    {% if session.get('admin') %}
-      <a href="{{ url_for('admin_dashboard') }}" class="nav-link">Admin</a>
-    {% endif %}
-
-    {% if session.get('user') %}
-      <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
-    {% else %}
-      <a href="{{ url_for('login') }}" class="nav-link">Login</a>
-      <a href="{{ url_for('signup') }}" class="nav-link">Signup</a>
-    {% endif %}
-  </nav>
-
-  <!-- Flash messages -->
-  <div class="flash-messages">
+  <!-- Flash Messages -->
+  <div class="container">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-        <ul>
-          {% for category, message in messages %}
-            <li class="flash {{ category }}">{{ message }}</li>
-          {% endfor %}
-        </ul>
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
       {% endif %}
     {% endwith %}
   </div>
 
-  <!-- Page content -->
-  <main>
+  <!-- Page Content -->
+  <div class="container">
     {% block content %}{% endblock %}
-  </main>
+  </div>
 
 </body>
 </html>
