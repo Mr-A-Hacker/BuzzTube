@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-<!-- Splash Screen -->
+<!-- Splash Overlay -->
 <div id="splash" style="
     position:fixed;
     top:0; left:0;
@@ -12,12 +12,7 @@
     align-items:center;
     z-index:9999;
 ">
-  <h1 class="neon-text big-title" style="
-    text-shadow: 0 0 20px #ff33aa, 0 0 40px #ff66cc, 0 0 60px #ff99dd;
-    transform: perspective(800px) rotateY(10deg);
-  ">
-    Welcome to BuzzTube
-  </h1>
+  <h1 class="neon-text big-title splash-text">BuzzTube</h1>
 </div>
 
 <!-- Main Content -->
@@ -30,28 +25,15 @@
     <!-- Video Feed -->
     <ul class="video-list">
       {% for v in videos %}
-        <li class="card" style="
-          transform: perspective(1000px) rotateX(5deg) rotateY(-3deg);
-          transition: transform 0.4s ease, box-shadow 0.4s ease;
-        " onmouseover="this.style.transform='perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1.05)'; this.style.boxShadow='0 0 40px #ff33aa';"
-           onmouseout="this.style.transform='perspective(1000px) rotateX(5deg) rotateY(-3deg)'; this.style.boxShadow='0 0 20px #ff33aa';">
-
+        <li class="card three-d-card">
           <!-- Video Title -->
-          <h2 class="neon-text" style="text-shadow: 0 0 15px #ff33aa, 0 0 30px #ff66cc;">
-            {{ v['title'] }}
-          </h2>
+          <h2 class="neon-text three-d-text">{{ v['title'] }}</h2>
           <p class="meta">Uploaded by {{ v['uploader'] }}</p>
 
           <!-- Video Preview -->
           {% if v['filepath'] %}
-            <div style="perspective: 1200px;">
-              <video controls width="100%" style="
-                border-radius:12px;
-                box-shadow: 0 0 30px #ff33aa;
-                transform: rotateY(-5deg) translateZ(20px);
-                transition: transform 0.4s ease, box-shadow 0.4s ease;
-              " onmouseover="this.style.transform='rotateY(0deg) translateZ(30px) scale(1.03)'; this.style.boxShadow='0 0 50px #ff66cc';"
-                 onmouseout="this.style.transform='rotateY(-5deg) translateZ(20px)'; this.style.boxShadow='0 0 30px #ff33aa';" preload="metadata">
+            <div class="three-d-video">
+              <video controls width="100%" preload="metadata">
                 <source src="{{ v['filepath'] }}" type="video/mp4">
                 Your browser does not support the video tag.
               </video>
@@ -61,40 +43,14 @@
           {% endif %}
 
           <!-- Actions -->
-          <div class="actions" style="margin-top:12px; display:flex; gap:12px;">
-            <!-- Like Button -->
-            <form action="{{ url_for('like_video', id=v['id']) }}" method="POST" style="display:inline;">
-              <button type="submit" class="btn" style="
-                box-shadow: 0 0 20px #ff33aa;
-                transform: translateZ(15px);
-                transition: all 0.3s ease;
-              " onmouseover="this.style.transform='translateZ(30px) scale(1.1)'; this.style.boxShadow='0 0 40px #ff66cc';"
-                 onmouseout="this.style.transform='translateZ(15px)'; this.style.boxShadow='0 0 20px #ff33aa';">
-                Like ({{ v['likes'] }})
-              </button>
+          <div class="actions three-d-actions">
+            <form action="{{ url_for('like_video', id=v['id']) }}" method="POST">
+              <button type="submit" class="btn three-d-btn">Like ({{ v['likes'] }})</button>
             </form>
-
-            <!-- Follow Button -->
-            <form action="{{ url_for('follow_user', username=v['uploader']) }}" method="POST" style="display:inline;">
-              <button type="submit" class="btn" style="
-                box-shadow: 0 0 20px #ff33aa;
-                transform: translateZ(15px);
-                transition: all 0.3s ease;
-              " onmouseover="this.style.transform='translateZ(30px) scale(1.1)'; this.style.boxShadow='0 0 40px #ff66cc';"
-                 onmouseout="this.style.transform='translateZ(15px)'; this.style.boxShadow='0 0 20px #ff33aa';">
-                Follow {{ v['uploader'] }}
-              </button>
+            <form action="{{ url_for('follow_user', username=v['uploader']) }}" method="POST">
+              <button type="submit" class="btn three-d-btn">Follow {{ v['uploader'] }}</button>
             </form>
-
-            <!-- Watch Button -->
-            <a class="btn" href="{{ url_for('video', id=v['id']) }}" style="
-              box-shadow: 0 0 20px #ff33aa;
-              transform: translateZ(15px);
-              transition: all 0.3s ease;
-            " onmouseover="this.style.transform='translateZ(30px) scale(1.1)'; this.style.boxShadow='0 0 40px #ff66cc';"
-               onmouseout="this.style.transform='translateZ(15px)'; this.style.boxShadow='0 0 20px #ff33aa';">
-              Watch
-            </a>
+            <a class="btn three-d-btn" href="{{ url_for('video', id=v['id']) }}">Watch</a>
           </div>
         </li>
       {% else %}
@@ -104,19 +60,95 @@
   </div>
 </div>
 
-<!-- Splash Script -->
+<!-- Styles -->
+<style>
+  .splash-text {
+    animation: pulseScale 2s infinite;
+    text-shadow: 0 0 20px #ff33aa, 0 0 40px #ff66cc, 0 0 60px #ff99dd;
+  }
+  @keyframes pulseScale {
+    0%   { transform: scale(1); }
+    25%  { transform: scale(1.2); }
+    50%  { transform: scale(0.9); }
+    75%  { transform: scale(1.3); }
+    100% { transform: scale(1); }
+  }
+
+  .three-d-card {
+    background-color:#1a1a1a;
+    border-radius:12px;
+    padding:15px;
+    margin-bottom:20px;
+    box-shadow:0 0 20px #ff33aa;
+    transform: perspective(1000px) rotateX(5deg) rotateY(-3deg);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+  }
+  .three-d-card:hover {
+    transform: perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1.05);
+    box-shadow:0 0 40px #ff66cc;
+  }
+
+  .three-d-text {
+    text-shadow:0 0 15px #ff33aa, 0 0 30px #ff66cc;
+  }
+
+  .three-d-video video {
+    border-radius:12px;
+    box-shadow:0 0 30px #ff33aa;
+    transform: rotateY(-5deg) translateZ(20px);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+  }
+  .three-d-video video:hover {
+    transform: rotateY(0deg) translateZ(30px) scale(1.03);
+    box-shadow:0 0 50px #ff66cc;
+  }
+
+  .three-d-btn {
+    box-shadow:0 0 20px #ff33aa;
+    transform: translateZ(15px);
+    transition: all 0.3s ease;
+    margin-right:10px;
+  }
+  .three-d-btn:hover {
+    transform: translateZ(30px) scale(1.1);
+    box-shadow:0 0 40px #ff66cc;
+  }
+</style>
+
+<!-- Script -->
 <script>
-  window.addEventListener("load", function() {
+  function showSplash(callback) {
     const splash = document.getElementById("splash");
     const main = document.getElementById("main-content");
+    splash.style.display = "flex";
+    splash.style.opacity = 1;
+    main.style.display = "none";
     setTimeout(() => {
       splash.style.opacity = 0;
       splash.style.transition = "opacity 1.5s ease";
       setTimeout(() => {
         splash.style.display = "none";
         main.style.display = "block";
+        if (callback) callback();
       }, 1500);
-    }, 2500); // splash duration in ms
+    }, 2000);
+  }
+
+  // Initial splash on page load
+  window.addEventListener("load", () => {
+    showSplash();
+  });
+
+  // Splash on every link/button click
+  document.addEventListener("click", function(e) {
+    const target = e.target.closest("a, button, form");
+    if (target && target.tagName !== "FORM") {
+      e.preventDefault();
+      const href = target.getAttribute("href");
+      showSplash(() => {
+        if (href) window.location.href = href;
+      });
+    }
   });
 </script>
 
