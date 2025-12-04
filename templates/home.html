@@ -16,14 +16,14 @@
       {% for v in videos %}
         <li class="card three-d-card">
           <!-- Video Title -->
-          <h2 class="neon-text three-d-text">{{ v['title'] }}</h2>
-          <p class="meta">Uploaded by {{ v['uploader'] }}</p>
+          <h2 class="neon-text three-d-text">{{ v.title }}</h2>
+          <p class="meta">Uploaded by {{ v.uploader }}</p>
 
           <!-- Video Preview -->
-          {% if v['filepath'] %}
+          {% if v.filepath %}
             <div class="three-d-video">
               <video controls width="100%" preload="metadata">
-                <source src="{{ v['filepath'] }}" type="video/mp4">
+                <source src="{{ v.filepath }}" type="video/mp4">
                 Your browser does not support the video tag.
               </video>
             </div>
@@ -33,20 +33,20 @@
 
           <!-- Actions -->
           <div class="actions three-d-actions">
-            <form action="{{ url_for('like_video', id=v['id']) }}" method="POST">
-              <button type="submit" class="btn three-d-btn">Like ({{ v['likes'] }})</button>
+            <form action="{{ url_for('like_video', id=v.id) }}" method="POST">
+              <button type="submit" class="btn three-d-btn">Like ({{ v.likes }})</button>
             </form>
-            <form action="{{ url_for('follow_user', username=v['uploader']) }}" method="POST">
-              <button type="submit" class="btn three-d-btn">Follow {{ v['uploader'] }}</button>
+            <form action="{{ url_for('follow_user', username=v.uploader) }}" method="POST">
+              <button type="submit" class="btn three-d-btn">Follow {{ v.uploader }}</button>
             </form>
-            <a class="btn three-d-btn" href="{{ url_for('video', id=v['id']) }}">Watch</a>
+            <a class="btn three-d-btn" href="{{ url_for('video', id=v.id) }}">Watch</a>
           </div>
 
           <!-- Comment Box -->
-          <form action="{{ url_for('video', id=v['id']) }}" method="POST" class="neon-form-inline">
+          <form action="{{ url_for('video', id=v.id) }}" method="POST" class="neon-form-inline">
             <div class="neon-field">
-              <label class="neon-label" for="c-{{ v['id'] }}">Comment</label>
-              <input id="c-{{ v['id'] }}" type="text" name="text" placeholder="Write a comment…" class="neon-input">
+              <label class="neon-label" for="c-{{ v.id }}">Comment</label>
+              <input id="c-{{ v.id }}" type="text" name="text" placeholder="Write a comment…" class="neon-input">
             </div>
             <button type="submit" class="btn three-d-btn">Post</button>
           </form>
@@ -180,4 +180,4 @@
 <!-- Script -->
 <script>
   function showSplash(callback) {
-    const splash = document.getElementById("s
+    const
