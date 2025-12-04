@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+  <h1 class="neon-text">Search Results for "{{ query }}"</h1>
+
+  <ul class="video-list">
+    {% for v in results %}
+      <li class="card">
+        <h2 class="neon-text">{{ v['title'] }}</h2>
+        <p class="meta">Uploaded by {{ v['uploader'] }}</p>
+        <a class="btn" href="{{ url_for('video', id=v['id']) }}">▶️ Watch</a>
+      </li>
+    {% else %}
+      <li class="meta">No videos found.</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
