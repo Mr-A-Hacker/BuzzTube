@@ -60,10 +60,14 @@
       border-radius: 6px;
       cursor: pointer;
       margin-right: 5px;
+      box-shadow: 0 0 15px #ff33aa;
+      transition: all 0.3s ease;
     }
     .btn:hover {
       background-color: #ff66cc;
       color: #000;
+      transform: translateZ(5px) scale(1.05);
+      box-shadow: 0 0 25px #ff66cc;
     }
     .flash {
       padding: 10px;
@@ -77,6 +81,57 @@
     .video-list { list-style: none; padding: 0; }
     .video-list li { margin-bottom: 20px; }
     .meta { font-size: 0.9em; color: #aaa; }
+
+    /* 🔥 Universal Neon Input Styling */
+    .neon-label {
+      color: #ff66cc;
+      font-weight: bold;
+      text-shadow: 0 0 6px #ff33aa;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .neon-input, textarea, input[type="file"] {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid rgba(255,102,204,0.4);
+      border-radius: 12px;
+      background-color: #0a0a0a;
+      color: #ff66cc;
+      font-size: 1rem;
+      font-weight: 600;
+      outline: none;
+      box-shadow:
+        inset 0 0 10px rgba(255,51,170,0.35),
+        inset 0 0 20px rgba(255,102,204,0.25),
+        0 0 10px rgba(255,51,170,0.35),
+        0 0 20px rgba(255,102,204,0.45);
+      transform: perspective(800px) translateZ(8px);
+      transition: border-color .25s ease, box-shadow .25s ease, transform .25s ease, background .25s ease;
+    }
+    .neon-input::placeholder, textarea::placeholder {
+      color: #ff99dd;
+      text-shadow: 0 0 6px #ff33aa;
+      font-style: italic;
+      opacity: .9;
+    }
+    .neon-input:hover, textarea:hover, input[type="file"]:hover {
+      border-color: rgba(255,102,204,0.7);
+      box-shadow:
+        inset 0 0 14px rgba(255,102,204,0.35),
+        inset 0 0 24px rgba(255,51,170,0.28),
+        0 0 16px rgba(255,102,204,0.5);
+      transform: perspective(800px) translateZ(14px);
+    }
+    .neon-input:focus, textarea:focus {
+      background: linear-gradient(160deg, #0a0a0a 0%, #151515 100%);
+      border-color: #ff66cc;
+      box-shadow:
+        inset 0 0 18px rgba(255,102,204,0.55),
+        inset 0 0 28px rgba(255,51,170,0.4),
+        0 0 22px rgba(255,102,204,0.8),
+        0 0 38px rgba(255,51,170,0.45);
+      transform: perspective(800px) translateZ(20px) scale(1.03);
+    }
   </style>
 </head>
 <body>
