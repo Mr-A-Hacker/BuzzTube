@@ -5,10 +5,11 @@
   <title>BuzzTube</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- Neon Pink Styling -->
   <style>
     body {
-      background-color: #0d0d0d;
-      color: #f0f0f0;
+      background-color: #000000;
+      color: #ff66cc;
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
@@ -19,16 +20,17 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 0 10px #6600ff;
+      box-shadow: 0 0 10px #ff33aa;
     }
     .navbar a {
-      color: #f0f0f0;
+      color: #ff66cc;
       text-decoration: none;
       margin: 0 10px;
       font-weight: bold;
     }
     .navbar a:hover {
-      color: #00ffff;
+      color: #ffffff;
+      text-shadow: 0 0 5px #ff66cc, 0 0 10px #ff33aa;
     }
     .container {
       max-width: 900px;
@@ -36,8 +38,8 @@
       padding: 20px;
     }
     .neon-text {
-      color: #00ffff;
-      text-shadow: 0 0 5px #00ffff, 0 0 10px #6600ff;
+      color: #ff66cc;
+      text-shadow: 0 0 5px #ff66cc, 0 0 10px #ff33aa;
     }
     .big-title {
       font-size: 2.5em;
@@ -48,10 +50,10 @@
       border-radius: 12px;
       padding: 15px;
       margin-bottom: 20px;
-      box-shadow: 0 0 15px #6600ff;
+      box-shadow: 0 0 15px #ff33aa;
     }
     .btn {
-      background-color: #6600ff;
+      background-color: #ff33aa;
       color: #fff;
       border: none;
       padding: 8px 12px;
@@ -60,7 +62,7 @@
       margin-right: 5px;
     }
     .btn:hover {
-      background-color: #00ffff;
+      background-color: #ff66cc;
       color: #000;
     }
     .flash {
@@ -68,10 +70,13 @@
       margin: 10px 0;
       border-radius: 6px;
     }
-    .flash.success { background-color: #004d00; color: #00ff00; }
-    .flash.danger { background-color: #4d0000; color: #ff3333; }
-    .flash.warning { background-color: #4d3300; color: #ffcc00; }
-    .flash.info { background-color: #00334d; color: #00ccff; }
+    .flash.success { background-color: #330033; color: #ff66cc; }
+    .flash.danger { background-color: #330000; color: #ff3333; }
+    .flash.warning { background-color: #332200; color: #ffcc00; }
+    .flash.info { background-color: #001a33; color: #66ccff; }
+    .video-list { list-style: none; padding: 0; }
+    .video-list li { margin-bottom: 20px; }
+    .meta { font-size: 0.9em; color: #aaa; }
   </style>
 </head>
 <body>
