@@ -20,9 +20,11 @@
     <ul class="video-list">
       {% for v in videos %}
         <li class="card three-d-card">
+          <!-- Video Title -->
           <h2 class="neon-text three-d-text">{{ v['title'] }}</h2>
           <p class="meta">Uploaded by {{ v['uploader'] }}</p>
 
+          <!-- Video Preview -->
           {% if v['filepath'] %}
             <div class="three-d-video">
               <video controls width="100%" preload="metadata">
@@ -45,7 +47,7 @@
             <a class="btn three-d-btn" href="{{ url_for('video', id=v['id']) }}">Watch</a>
           </div>
 
-          <!-- Comment Box (styled inputs) -->
+          <!-- Comment Box -->
           <form action="{{ url_for('video', id=v['id']) }}" method="POST" class="neon-form-inline">
             <div class="neon-field">
               <label class="neon-label" for="c-{{ v['id'] }}">Comment</label>
@@ -114,7 +116,7 @@
     background:#ff66cc; color:#000;
   }
 
-  /* FORM: universal neon fields */
+  /* Neon text boxes */
   .neon-form-inline {
     display:flex; gap:12px; align-items:flex-end; margin-top:16px; flex-wrap:wrap;
   }
@@ -135,12 +137,10 @@
     font-size:1rem;
     font-weight:600;
     outline:none;
-    /* layered glow */
     box-shadow:
       inset 0 0 10px rgba(255,51,170,0.35),
       inset 0 0 18px rgba(255,102,204,0.25),
       0 0 10px rgba(255,51,170,0.35);
-    /* 3D depth */
     transform: perspective(800px) translateZ(8px);
     transition: border-color .25s ease, box-shadow .25s ease, transform .25s ease, background .25s ease;
   }
@@ -148,7 +148,8 @@
   .neon-input::placeholder {
     color:#ff99dd;
     text-shadow: 0 0 6px #ff33aa;
-    font-style:italic; opacity:.9;
+    font-style:italic;
+    opacity:.9;
   }
 
   .neon-input:hover {
@@ -169,12 +170,6 @@
       0 0 22px rgba(255,102,204,0.8),
       0 0 38px rgba(255,51,170,0.45);
     transform: perspective(800px) translateZ(20px) scale(1.03);
-  }
-
-  /* Optional: helper message under inputs */
-  .neon-help {
-    color:#ff99dd; font-size:.9rem;
-    text-shadow: 0 0 5px #ff66cc;
   }
 </style>
 
