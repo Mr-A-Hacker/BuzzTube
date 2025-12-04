@@ -140,6 +140,23 @@ def signup():
             conn.close()
     return render_template("signup.html")
 
+@app.route("/search", methods=["GET", "POST"])
+@premium_required
+def search():
+    query = request.args.get("q", "").strip()
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT * FROM videos
+        WHERE title LIKE ? OR uploader LIKE ?
+        ORDER BY id DESC
+    """, (f"%{query}%", f"%{query}%"))
+    results = cur.fetchall()
+    conn.close()
+
+    return render_template("search.html", query=query, results=results)
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
