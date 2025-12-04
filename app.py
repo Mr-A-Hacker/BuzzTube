@@ -110,7 +110,12 @@ def premium_required(f):
         user = cur.fetchone()
         conn.close()
 
-        if user and user["premium"] == 0:
+        if not user:
+            session.clear()
+            flash("Your account no longer exists. Please sign up again.", "danger")
+            return redirect(url_for("signup"))
+
+        if user["premium"] == 0:
             start = session.get("login_time", 0)
             now = int(time.time())
             if now - start > 600:  # 10 minutes
@@ -139,41 +144,6 @@ def signup():
         finally:
             conn.close()
     return render_template("signup.html")
-
-@app.route("/search", methods=["GET", "POST"])
-@premium_required
-def search():
-    query = request.args.get("q", "").strip()
-
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT * FROM videos
-        WHERE title LIKE ? OR uploader LIKE ?
-        ORDER BY id DESC
-    """, (f"%{query}%", f"%{query}%"))
-    results = cur.fetchall()
-    conn.close()
-
-    return render_template("search.html", query=query, results=results)
-
-@app.route("/")
-@premium_required
-def home():
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM videos ORDER BY id DESC")
-    videos = cur.fetchall()
-
-    premium = 0
-    if "user" in session:
-        cur.execute("SELECT premium FROM users WHERE username=?", (session["user"],))
-        user = cur.fetchone()
-        if user:
-            premium = user["premium"]
-
-    conn.close()
-    return render_template("home.html", videos=videos, premium=premium)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -215,11 +185,15 @@ def home():
     cur.execute("SELECT * FROM videos ORDER BY id DESC")
     videos = cur.fetchall()
 
+    premium = 0
     cur.execute("SELECT premium FROM users WHERE username=?", (session["user"],))
     user = cur.fetchone()
-    conn.close()
+    if user:
+        premium = user["premium"]
 
-    return render_template("home.html", videos=videos, premium=user["premium"])
+    conn.close()
+    return render_template("home.html", videos=videos, premium=premium)
+
 @app.route("/video/<int:id>", methods=["GET", "POST"])
 @premium_required
 def video(id):
@@ -241,7 +215,8 @@ def video(id):
     user = cur.fetchone()
     conn.close()
 
-    return render_template("video.html", v=v, comments=comments, premium=user["premium"])
+    premium = user["premium"] if user else 0
+    return render_template("video.html", v=v, comments=comments, premium=premium)
 
 
 @app.route("/upload", methods=["GET", "POST"])
@@ -343,7 +318,7 @@ def like_video(id):
         flash("Video not found.", "danger")
         return redirect(url_for("home"))
 
-    # 🚫 Prevent self-like
+    # Prevent self-like
     if video["uploader"] == session["user"]:
         conn.close()
         flash("You cannot like your own video.", "warning")
