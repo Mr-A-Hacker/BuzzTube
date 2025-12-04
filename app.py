@@ -157,6 +157,24 @@ def search():
 
     return render_template("search.html", query=query, results=results)
 
+@app.route("/")
+@premium_required
+def home():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM videos ORDER BY id DESC")
+    videos = cur.fetchall()
+
+    premium = 0
+    if "user" in session:
+        cur.execute("SELECT premium FROM users WHERE username=?", (session["user"],))
+        user = cur.fetchone()
+        if user:
+            premium = user["premium"]
+
+    conn.close()
+    return render_template("home.html", videos=videos, premium=premium)
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
