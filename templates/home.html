@@ -18,9 +18,7 @@
 <!-- Main Content -->
 <div id="main-content" style="display:none;">
   <div class="container">
-    <h1 class="neon-text big-title" style="text-shadow: 0 0 20px #ff33aa, 0 0 40px #ff66cc;">
-      BuzzTube Home
-    </h1>
+    <h1 class="neon-text big-title">BuzzTube Home</h1>
 
     <!-- Video Feed -->
     <ul class="video-list">
@@ -68,6 +66,7 @@
 
 <!-- Styles -->
 <style>
+  /* Splash animation */
   .splash-text {
     animation: pulseScale 2s infinite;
     text-shadow: 0 0 20px #ff33aa, 0 0 40px #ff66cc, 0 0 60px #ff99dd;
@@ -80,6 +79,7 @@
     100% { transform: scale(1); }
   }
 
+  /* Cards */
   .three-d-card {
     background-color:#1a1a1a;
     border-radius:12px;
@@ -94,10 +94,12 @@
     box-shadow:0 0 40px #ff66cc;
   }
 
+  /* Text */
   .three-d-text {
     text-shadow:0 0 15px #ff33aa, 0 0 30px #ff66cc;
   }
 
+  /* Video */
   .three-d-video video {
     border-radius:12px;
     box-shadow:0 0 30px #ff33aa;
@@ -109,7 +111,14 @@
     box-shadow:0 0 50px #ff66cc;
   }
 
+  /* Buttons */
   .three-d-btn {
+    background-color: #ff33aa;
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: bold;
     box-shadow:0 0 20px #ff33aa;
     transform: translateZ(15px);
     transition: all 0.3s ease;
@@ -118,8 +127,11 @@
   .three-d-btn:hover {
     transform: translateZ(30px) scale(1.1);
     box-shadow:0 0 40px #ff66cc;
+    background-color:#ff66cc;
+    color:#000;
   }
 
+  /* Inputs */
   .neon-input {
     width: 70%;
     padding: 10px;
@@ -164,18 +176,6 @@
   // Initial splash on page load
   window.addEventListener("load", () => {
     showSplash();
-  });
-
-  // Splash on every link/button click
-  document.addEventListener("click", function(e) {
-    const target = e.target.closest("a, button, form");
-    if (target && target.tagName !== "FORM") {
-      e.preventDefault();
-      const href = target.getAttribute("href");
-      showSplash(() => {
-        if (href) window.location.href = href;
-      });
-    }
   });
 </script>
 
