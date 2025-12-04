@@ -1,80 +1,85 @@
 {% extends "base.html" %}
 {% block content %}
 
-<!-- Splash Screen -->
-<div id="splash" style="
-    position:fixed;
-    top:0; left:0;
-    width:100%; height:100%;
-    background-color:#000;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    z-index:9999;
-">
-  <h1 class="neon-text big-title">Welcome to BuzzTube</h1>
-</div>
+<div class="container">
+  <h1 class="neon-text big-title" style="text-shadow: 0 0 20px #ff33aa, 0 0 40px #ff66cc;">
+    BuzzTube Home
+  </h1>
 
-<!-- Main Content -->
-<div id="main-content" style="display:none;">
-  <div class="container">
-    <h1 class="neon-text big-title">BuzzTube Home</h1>
+  <!-- Video Feed -->
+  <ul class="video-list">
+    {% for v in videos %}
+      <li class="card" style="
+        transform: perspective(1000px) rotateX(2deg);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      " onmouseover="this.style.transform='perspective(1000px) rotateX(0deg) scale(1.02)'; this.style.boxShadow='0 0 30px #ff33aa';"
+         onmouseout="this.style.transform='perspective(1000px) rotateX(2deg)'; this.style.boxShadow='0 0 15px #ff33aa';">
 
-    <!-- Video Feed -->
-    <ul class="video-list">
-      {% for v in videos %}
-        <li class="card">
-          <!-- Video Title -->
-          <h2 class="neon-text">{{ v['title'] }}</h2>
-          <p class="meta">Uploaded by {{ v['uploader'] }}</p>
+        <!-- Video Title -->
+        <h2 class="neon-text" style="text-shadow: 0 0 10px #ff33aa, 0 0 20px #ff66cc;">
+          {{ v['title'] }}
+        </h2>
+        <p class="meta">Uploaded by {{ v['uploader'] }}</p>
 
-          <!-- Video Preview -->
-          {% if v['filepath'] %}
-            <video controls width="100%" style="border-radius:12px; box-shadow:0 0 20px #ff33aa;" preload="metadata">
+        <!-- Video Preview -->
+        {% if v['filepath'] %}
+          <div style="perspective: 1200px;">
+            <video controls width="100%" style="
+              border-radius:12px;
+              box-shadow: 0 0 25px #ff33aa;
+              transform: rotateY(-2deg);
+              transition: transform 0.3s ease;
+            " onmouseover="this.style.transform='rotateY(0deg) scale(1.01)';"
+               onmouseout="this.style.transform='rotateY(-2deg)';" preload="metadata">
               <source src="{{ v['filepath'] }}" type="video/mp4">
               Your browser does not support the video tag.
             </video>
-          {% else %}
-            <p class="flash warning">No video file available.</p>
-          {% endif %}
-
-          <!-- Actions -->
-          <div class="actions" style="margin-top:12px;">
-            <!-- Like Button -->
-            <form action="{{ url_for('like_video', id=v['id']) }}" method="POST" style="display:inline;">
-              <button type="submit" class="btn">Like ({{ v['likes'] }})</button>
-            </form>
-
-            <!-- Follow Button -->
-            <form action="{{ url_for('follow_user', username=v['uploader']) }}" method="POST" style="display:inline;">
-              <button type="submit" class="btn">Follow {{ v['uploader'] }}</button>
-            </form>
-
-            <!-- Watch Button -->
-            <a class="btn" href="{{ url_for('video', id=v['id']) }}">Watch</a>
           </div>
-        </li>
-      {% else %}
-        <li class="meta">No videos found. Upload one to get started!</li>
-      {% endfor %}
-    </ul>
-  </div>
-</div>
+        {% else %}
+          <p class="flash warning">No video file available.</p>
+        {% endif %}
 
-<!-- Splash Script -->
-<script>
-  window.addEventListener("load", function() {
-    const splash = document.getElementById("splash");
-    const main = document.getElementById("main-content");
-    setTimeout(() => {
-      splash.style.opacity = 0;
-      splash.style.transition = "opacity 1s ease";
-      setTimeout(() => {
-        splash.style.display = "none";
-        main.style.display = "block";
-      }, 1000);
-    }, 2000); // splash duration in ms
-  });
-</script>
+        <!-- Actions -->
+        <div class="actions" style="margin-top:12px; display:flex; gap:10px;">
+          <!-- Like Button -->
+          <form action="{{ url_for('like_video', id=v['id']) }}" method="POST" style="display:inline;">
+            <button type="submit" class="btn" style="
+              box-shadow: 0 0 15px #ff33aa;
+              transform: translateZ(10px);
+              transition: all 0.2s ease;
+            " onmouseover="this.style.transform='translateZ(20px) scale(1.05)'; this.style.boxShadow='0 0 25px #ff66cc';"
+               onmouseout="this.style.transform='translateZ(10px)'; this.style.boxShadow='0 0 15px #ff33aa';">
+              Like ({{ v['likes'] }})
+            </button>
+          </form>
+
+          <!-- Follow Button -->
+          <form action="{{ url_for('follow_user', username=v['uploader']) }}" method="POST" style="display:inline;">
+            <button type="submit" class="btn" style="
+              box-shadow: 0 0 15px #ff33aa;
+              transform: translateZ(10px);
+              transition: all 0.2s ease;
+            " onmouseover="this.style.transform='translateZ(20px) scale(1.05)'; this.style.boxShadow='0 0 25px #ff66cc';"
+               onmouseout="this.style.transform='translateZ(10px)'; this.style.boxShadow='0 0 15px #ff33aa';">
+              Follow {{ v['uploader'] }}
+            </button>
+          </form>
+
+          <!-- Watch Button -->
+          <a class="btn" href="{{ url_for('video', id=v['id']) }}" style="
+            box-shadow: 0 0 15px #ff33aa;
+            transform: translateZ(10px);
+            transition: all 0.2s ease;
+          " onmouseover="this.style.transform='translateZ(20px) scale(1.05)'; this.style.boxShadow='0 0 25px #ff66cc';"
+             onmouseout="this.style.transform='translateZ(10px)'; this.style.boxShadow='0 0 15px #ff33aa';">
+            Watch
+          </a>
+        </div>
+      </li>
+    {% else %}
+      <li class="meta">No videos found. Upload one to get started!</li>
+    {% endfor %}
+  </ul>
+</div>
 
 {% endblock %}
