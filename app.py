@@ -149,12 +149,22 @@ def signup():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        email = request.form.get("email")
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        # Server-side validation
+        if not email or not username or not password:
+            flash("Email, username, and password are required.", "danger")
+            return redirect(url_for("login"))
 
         conn = get_db()
         cur = conn.cursor()
-        cur.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
+        # Match all three fields
+        cur.execute(
+            "SELECT * FROM users WHERE email=? AND username=? AND password=?",
+            (email, username, password)
+        )
         user = cur.fetchone()
         conn.close()
 
@@ -168,6 +178,7 @@ def login():
             flash("Invalid credentials.", "danger")
 
     return render_template("login.html")
+
 
 
 @app.route("/logout")
