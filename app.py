@@ -175,6 +175,11 @@ def grant_premium(username):
         session['premium_granted'] = True
     return redirect(url_for('profile', username=username))
 
+@app.route('/clear_premium_flag')
+def clear_premium_flag():
+    session.pop('premium_granted', None)
+    return '', 204
+
 
 
 @app.route("/login", methods=["GET", "POST"])
