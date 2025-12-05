@@ -82,7 +82,7 @@
     .video-list li { margin-bottom: 20px; }
     .meta { font-size: 0.9em; color: #aaa; }
 
-    /* 🔥 Universal Neon Input Styling */
+    /* Neon Input Styling */
     .neon-label {
       color: #ff66cc;
       font-weight: bold;
@@ -132,6 +132,36 @@
         0 0 38px rgba(255,51,170,0.45);
       transform: perspective(800px) translateZ(20px) scale(1.03);
     }
+
+    /* Premium Popup Styling */
+    .premium-popup {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    }
+    .premium-content {
+      background: #111;
+      padding: 40px;
+      border-radius: 16px;
+      text-align: center;
+      box-shadow: 0 0 60px #ff33aa;
+      animation: pulseBorder 2s infinite;
+    }
+    .premium-content h1 {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+      color: #ff66cc;
+      text-shadow: 0 0 15px #ff33aa, 0 0 30px #ff66cc;
+    }
+    @keyframes pulseBorder {
+      0% { box-shadow: 0 0 20px #ff33aa; }
+      50% { box-shadow: 0 0 60px #ff66cc; }
+      100% { box-shadow: 0 0 20px #ff33aa; }
+    }
   </style>
 </head>
 <body>
@@ -150,7 +180,7 @@
     </div>
     <div class="nav-right">
       {% if session.get('user') %}
-        <a href="{{ url_for('settings') }}">Settings</a> <!-- 🔥 Settings button -->
+        <a href="{{ url_for('settings') }}">Settings</a>
         <a href="{{ url_for('logout') }}">Logout</a>
       {% else %}
         <a href="{{ url_for('login') }}">Login</a>
@@ -170,10 +200,16 @@
     {% endwith %}
   </div>
 
-  <!-- Page Content -->
-  <div class="container">
-    {% block content %}{% endblock %}
+  <!-- Premium Popup -->
+  {% if session.get('premium_granted') %}
+  <div id="premium-popup" class="premium-popup">
+    <div class="premium-content">
+      <h1>🎉 Admin has granted Premium!</h1>
+      <p class="neon-text">You now have access to exclusive features.</p>
+      <button class="btn" onclick="closePremium()">Close</button>
+    </div>
   </div>
-
-</body>
-</html>
+  <script>
+    function closePremium() {
+      document.getElementById("premium-popup").style.display = "none";
+      // Optionally clear the
