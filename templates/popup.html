@@ -1,0 +1,17 @@
+<!-- popup.html -->
+{% if session.get('premium_granted') %}
+<div id="premium-popup" class="premium-popup">
+  <div class="premium-content">
+    <h1>🎉 Admin has granted Premium!</h1>
+    <p class="neon-text">You now have access to exclusive features.</p>
+    <button class="btn" onclick="closePremium()">Close</button>
+  </div>
+</div>
+<script>
+  function closePremium() {
+    document.getElementById("premium-popup").style.display = "none";
+    // Clear the flag so it doesn't show again
+    fetch("{{ url_for('clear_premium_flag') }}");
+  }
+</script>
+{% endif %}
