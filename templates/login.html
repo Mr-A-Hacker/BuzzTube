@@ -6,23 +6,25 @@
 <form method="POST">
   <div class="neon-field">
     <label class="neon-label" for="email">Email</label>
-    <input type="email" id="email" name="email" class="neon-input" placeholder="Enter your email">
+    <input type="email" id="email" name="email" class="neon-input" 
+           placeholder="Enter your email" required>
   </div>
 
   <div class="neon-field">
     <label class="neon-label" for="username">Username</label>
-    <input type="text" id="username" name="username" class="neon-input" placeholder="Enter your username">
+    <input type="text" id="username" name="username" class="neon-input" 
+           placeholder="Enter your username" required>
   </div>
 
   <div class="neon-field">
     <label class="neon-label" for="password">Password</label>
-    <input type="password" id="password" name="password" class="neon-input" placeholder="Enter your password">
+    <input type="password" id="password" name="password" class="neon-input" 
+           placeholder="Enter your password" required>
   </div>
 
   <button type="submit" class="btn">Login</button>
 </form>
 
-<!-- Signup link -->
 <p style="margin-top:20px; color:#ff99dd; text-align:center;">
   Don’t have an account?
   <a href="{{ url_for('signup') }}" style="color:#ff66cc; text-shadow:0 0 6px #ff33aa;">Sign up here</a>
