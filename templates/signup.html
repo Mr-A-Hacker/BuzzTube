@@ -1,24 +1,19 @@
 {% extends "base.html" %}
 {% block content %}
-
-<div class="container">
-  <h1 class="neon-text big-title">Signup</h1>
-
-  <div class="card">
-    <form method="post" action="{{ url_for('signup') }}">
-      <label for="username" class="neon-text">Username</label>
-      <input type="text" id="username" name="username" required>
-
-      <label for="password" class="neon-text">Password</label>
-      <input type="password" id="password" name="password" required>
-
-      <button type="submit" class="btn">Signup</button>
-    </form>
+<h1 class="neon-text big-title">Signup</h1>
+<form method="POST">
+  <div class="neon-field">
+    <label class="neon-label" for="email">Email</label>
+    <input type="email" id="email" name="email" class="neon-input" placeholder="Enter your email">
   </div>
-
-  <div class="card">
-    <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a>.</p>
+  <div class="neon-field">
+    <label class="neon-label" for="username">Username</label>
+    <input type="text" id="username" name="username" class="neon-input" placeholder="Choose a username">
   </div>
-</div>
-
+  <div class="neon-field">
+    <label class="neon-label" for="password">Password</label>
+    <input type="password" id="password" name="password" class="neon-input" placeholder="Create a password">
+  </div>
+  <button type="submit" class="btn">Signup</button>
+</form>
 {% endblock %}
