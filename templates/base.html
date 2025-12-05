@@ -200,7 +200,7 @@
     {% endwith %}
   </div>
 
-  <!-- Premium Popup -->
+   <!-- Premium Popup -->
   {% if session.get('premium_granted') %}
   <div id="premium-popup" class="premium-popup">
     <div class="premium-content">
@@ -212,4 +212,9 @@
   <script>
     function closePremium() {
       document.getElementById("premium-popup").style.display = "none";
-      // Optionally clear the
+      // Optionally clear the flag via backend
+      fetch("{{ url_for('clear_premium_flag') }}");
+    }
+  </script>
+  {% endif %}
+
