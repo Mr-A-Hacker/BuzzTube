@@ -253,30 +253,52 @@ def video(id):
 @premium_required
 def upload():
     if request.method == "POST":
-        title = request.form["title"]
-        file = request.files.get("file")
+        # Safely get title
+        title = request.form.get("title")
+        if not title:
+            flash("Title is required.", "danger")
+            return redirect(url_for("upload"))
 
-        if not file or file.filename == "":
+        # Safely get file
+        file = request.files.get("file")
+        if not file or file.filename.strip() == "":
             flash("No file selected.", "danger")
             return redirect(url_for("upload"))
 
-        filename = werkzeug.utils.secure_filename(file.filename)
-        save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        file.save(save_path)
+        try:
+            # Secure filename
+            filename = werkzeug.utils.secure_filename(file.filename)
 
-        web_path = url_for("static", filename=f"uploads/{filename}")
+            # Ensure upload folder exists
+            os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("INSERT INTO videos (title, uploader, filepath) VALUES (?, ?, ?)",
-                    (title, session["user"], web_path))
-        conn.commit()
-        conn.close()
+            # Save file
+            save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            file.save(save_path)
 
-        flash("Video uploaded successfully!", "success")
-        return redirect(url_for("home"))
+            # Web path for serving
+            web_path = url_for("static", filename=f"uploads/{filename}")
+
+            # Insert into DB
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute(
+                "INSERT INTO videos (title, uploader, filepath) VALUES (?, ?, ?)",
+                (title, session["user"], web_path)
+            )
+            conn.commit()
+            conn.close()
+
+            flash("Video uploaded successfully!", "success")
+            return redirect(url_for("home"))
+
+        except Exception as e:
+            # Catch unexpected errors so Railway doesn't crash
+            flash(f"Upload failed: {e}", "danger")
+            return redirect(url_for("upload"))
 
     return render_template("upload.html")
+
 
 
 @app.route("/leaderboard")
