@@ -166,20 +166,24 @@ def signup():
 
 @app.route('/grant_premium/<username>', methods=['POST'])
 def grant_premium(username):
-    # Update user in DB
-    user = User.query.filter_by(username=username).first()
-    if user:
-        user.is_premium = True
-        db.session.commit()
-        # Set a session flag so the popup shows
-        session['premium_granted'] = True
+    # Update user in DB using SQLite
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE users SET premium=1 WHERE username=?", (username,))
+    conn.commit()
+    conn.close()
+
+    # Set a session flag so the popup shows
+    session['premium_granted'] = True
+    flash(f"Premium granted to {username}!", "success")
+
     return redirect(url_for('profile', username=username))
+
 
 @app.route('/clear_premium_flag')
 def clear_premium_flag():
     session.pop('premium_granted', None)
     return '', 204
-
 
 
 @app.route("/login", methods=["GET", "POST"])
