@@ -125,25 +125,35 @@ def premium_required(f):
 
         return f(*args, **kwargs)
     return decorated_function
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        email = request.form.get("email")
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        # Server-side validation
+        if not email or not username or not password:
+            flash("Email, username, and password are required.", "danger")
+            return redirect(url_for("signup"))
 
         conn = get_db()
         cur = conn.cursor()
         try:
-            cur.execute("INSERT INTO users (username, password, premium) VALUES (?, ?, ?)",
-                        (username, password, 0))
+            cur.execute(
+                "INSERT INTO users (email, username, password, premium) VALUES (?, ?, ?, ?)",
+                (email, username, password, 0)
+            )
             conn.commit()
             flash("Signup successful! Please log in.", "success")
             return redirect(url_for("login"))
         except sqlite3.IntegrityError:
-            flash("Username already exists.", "danger")
+            flash("Email or username already exists.", "danger")
         finally:
             conn.close()
     return render_template("signup.html")
+
 
 
 @app.route("/login", methods=["GET", "POST"])
