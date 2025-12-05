@@ -1,3 +1,5 @@
+
+
 {% extends "base.html" %}
 {% block content %}
 
@@ -11,30 +13,27 @@
   <div class="container">
     <h1 class="neon-text big-title">BuzzTube Home</h1>
 
+    <!-- Video Feed -->
     <ul class="video-list">
       {% for v in videos %}
         <li class="card three-d-card">
+          <!-- Video Title -->
           <h2 class="neon-text three-d-text">{{ v.title }}</h2>
           <p class="meta">Uploaded by {{ v.uploader }}</p>
 
+          <!-- Video Preview -->
           {% if v.filepath %}
-            <div class="three-d-video video-wrap">
+            <div class="three-d-video">
               <video id="video{{ v.id }}" controls width="100%" preload="metadata">
                 <source src="{{ v.filepath }}" type="video/mp4">
                 Your browser does not support the video tag.
               </video>
-
-              <!-- Neon overlay play/pause button (optional) -->
-              <button
-                class="btn three-d-btn overlay-play"
-                onclick="togglePlay('video{{ v.id }}', this)"
-                aria-label="Play or pause"
-              >Play</button>
             </div>
           {% else %}
             <p class="flash warning">No video file available.</p>
           {% endif %}
 
+          <!-- Actions -->
           <div class="actions three-d-actions">
             <form action="{{ url_for('like_video', id=v.id) }}" method="POST">
               <button type="submit" class="btn three-d-btn">Like ({{ v.likes }})</button>
@@ -45,6 +44,7 @@
             <a class="btn three-d-btn" href="{{ url_for('video', id=v.id) }}">Watch</a>
           </div>
 
+          <!-- Comment Box -->
           <form action="{{ url_for('video', id=v.id) }}" method="POST" class="neon-form-inline">
             <div class="neon-field">
               <label class="neon-label" for="c-{{ v.id }}">Comment</label>
@@ -60,19 +60,18 @@
   </div>
 </div>
 
+<!-- Styles -->
 <style>
   .splash { position:fixed; inset:0; background:#000; display:flex; justify-content:center; align-items:center; z-index:9999; }
-  .splash-text { animation:pulseScale 2s infinite; text-shadow:0 0 25px #ff33aa,0 0 50px #ff66cc,0 0 80px #ff99dd; }
+  .splash-text { animation: pulseScale 2s infinite; text-shadow: 0 0 25px #ff33aa, 0 0 50px #ff66cc, 0 0 80px #ff99dd; }
   @keyframes pulseScale { 0%{transform:scale(1);}25%{transform:scale(1.3);}50%{transform:scale(0.9);}75%{transform:scale(1.4);}100%{transform:scale(1);} }
 
   .three-d-card { background:#111; border-radius:16px; padding:20px; margin-bottom:25px; box-shadow:0 0 25px #ff33aa; transform:perspective(1200px) rotateX(6deg) rotateY(-4deg); transition:.4s; }
   .three-d-card:hover { transform:perspective(1200px) rotateX(0) rotateY(0) scale(1.06); box-shadow:0 0 60px #ff66cc; }
 
-  .video-wrap { position:relative; }
   .three-d-video video { border-radius:14px; box-shadow:0 0 35px #ff33aa; transform:rotateY(-8deg) translateZ(25px); transition:.4s; }
   .three-d-video video:hover { transform:rotateY(0) translateZ(40px) scale(1.05); box-shadow:0 0 70px #ff66cc; }
 
-  .overlay-play { position:absolute; bottom:16px; left:16px; }
   .three-d-btn { background:#ff33aa; color:#fff; border:none; padding:12px 20px; border-radius:12px; font-weight:700; box-shadow:0 0 25px #ff33aa; transition:.3s; }
   .three-d-btn:hover { transform:scale(1.12); box-shadow:0 0 50px #ff66cc; background:#ff66cc; color:#000; }
 
@@ -84,6 +83,7 @@
   .neon-input:focus { background:linear-gradient(160deg,#0a0a0a,#151515); border-color:#ff66cc; box-shadow:0 0 30px #ff66cc; transform:scale(1.05); }
 </style>
 
+<!-- Script -->
 <script>
   function showSplash(callback) {
     const splash = document.getElementById("splash");
@@ -102,19 +102,6 @@
     }, 1800);
   }
   window.addEventListener("load", () => { showSplash(); });
-
-  function togglePlay(videoId, btn) {
-    const video = document.getElementById(videoId);
-    // If the video element isn't found or has no sources, bail gracefully.
-    if (!video) return;
-    if (video.paused) {
-      video.play().then(() => { btn.textContent = "Pause"; }).catch(() => {});
-    } else {
-      video.pause();
-      btn.textContent = "Play";
-    }
-  }
 </script>
 
 {% endblock %}
-
