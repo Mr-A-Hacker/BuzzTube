@@ -157,3 +157,36 @@
       {% endif %}
     </div>
   </div>
+  <!-- Flash Messages -->
+  <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+  <!-- Page Content -->
+  <div class="container">
+    {% block content %}{% endblock %}
+  </div>
+  <!-- Premium Popup -->
+  {% if session.get('premium_granted') %}
+  <div id="premium-popup" class="premium-popup">
+    <div class="premium-content">
+      <h1>🎉 Admin has granted Premium!</h1>
+      <p class="neon-text">You now have access to exclusive features.</p>
+      <button class="btn" onclick="closePremium()">Close</button>
+    </div>
+  </div>
+  <script>
+    function closePremium() {
+      document.getElementById("premium-popup").style.display = "none";
+      // Optionally clear the flag via backend
+      fetch("{{ url_for('clear_premium_flag') }}");
+    }
+  </script>
+  {% endif %}
+</body>
+</html>
