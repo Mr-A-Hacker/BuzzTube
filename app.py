@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, abort
 import sqlite3, os, time
 from functools import wraps
 import werkzeug
@@ -20,7 +20,7 @@ def init_db():
     conn = get_db()
     cur = conn.cursor()
 
-    # Users table with email included
+    # Users table
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,11 +31,10 @@ def init_db():
         )
     """)
 
-    # Try to add email column if missing (for old deployments)
+    # Try to add email column if missing (legacy deployments)
     try:
         cur.execute("ALTER TABLE users ADD COLUMN email TEXT UNIQUE;")
     except sqlite3.OperationalError:
-        # Column already exists, ignore
         pass
 
     # Videos
@@ -69,7 +68,7 @@ def init_db():
         )
     """)
 
-    # Messages (Publichat)
+    # Messages (Public Chat)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -98,11 +97,31 @@ def init_db():
         )
     """)
 
+    # Blocked IPs
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS blocked_ips (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ip_address TEXT UNIQUE
+        )
+    """)
+
     conn.commit()
     conn.close()
 
 # Initialize DB at startup
 init_db()
+
+# Middleware: block requests if IP is in blocked list
+@app.before_request
+def check_ip_block():
+    ip = request.remote_addr
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT 1 FROM blocked_ips WHERE ip_address=?", (ip,))
+    if cur.fetchone():
+        conn.close()
+        abort(403)  # Forbidden
+    conn.close()
 
 # Premium decorator
 def premium_required(f):
@@ -134,7 +153,6 @@ def premium_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
@@ -142,7 +160,6 @@ def signup():
         username = request.form.get("username")
         password = request.form.get("password")
 
-        # Server-side validation
         if not email or not username or not password:
             flash("Email, username, and password are required.", "danger")
             return redirect(url_for("signup"))
@@ -163,28 +180,23 @@ def signup():
             conn.close()
     return render_template("signup.html")
 
-
 @app.route('/grant_premium/<username>', methods=['POST'])
 def grant_premium(username):
-    # Update user in DB using SQLite
     conn = get_db()
     cur = conn.cursor()
     cur.execute("UPDATE users SET premium=1 WHERE username=?", (username,))
     conn.commit()
     conn.close()
 
-    # Set a session flag so the popup shows
     session['premium_granted'] = True
     flash(f"Premium granted to {username}!", "success")
 
     return redirect(url_for('profile', username=username))
 
-
 @app.route('/clear_premium_flag')
 def clear_premium_flag():
     session.pop('premium_granted', None)
     return '', 204
-
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -193,14 +205,12 @@ def login():
         username = request.form.get("username")
         password = request.form.get("password")
 
-        # Server-side validation
         if not email or not username or not password:
             flash("Email, username, and password are required.", "danger")
             return redirect(url_for("login"))
 
         conn = get_db()
         cur = conn.cursor()
-        # Match all three fields
         cur.execute(
             "SELECT * FROM users WHERE email=? AND username=? AND password=?",
             (email, username, password)
@@ -218,6 +228,37 @@ def login():
             flash("Invalid credentials.", "danger")
 
     return render_template("login.html")
+
+# Admin routes for IP blocking
+@app.route('/admin/block_ip', methods=['POST'])
+def block_ip():
+    if not session.get("admin"):
+        abort(403)
+    ip = request.form.get("ip")
+    if ip:
+        conn = get_db()
+        cur = conn.cursor()
+        try:
+            cur.execute("INSERT INTO blocked_ips (ip_address) VALUES (?)", (ip,))
+            conn.commit()
+            flash(f"Blocked {ip}", "success")
+        except sqlite3.IntegrityError:
+            flash(f"{ip} is already blocked", "warning")
+        conn.close()
+    return redirect(url_for("admin_dashboard"))
+
+@app.route('/admin/unblock_ip', methods=['POST'])
+def unblock_ip():
+    if not session.get("admin"):
+        abort(403)
+    ip = request.form.get("ip")
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM blocked_ips WHERE ip_address=?", (ip,))
+    conn.commit()
+    conn.close()
+    flash(f"Unblocked {ip}", "success")
+    return redirect(url_for("admin_dashboard"))
 
 
 
