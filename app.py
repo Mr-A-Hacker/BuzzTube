@@ -618,7 +618,7 @@ def admin_mark_report_reviewed(id):
 
 # ✅ NEW: Block/Unblock IP routes
 @app.route("/admin/block_ip", methods=["POST"])
-def block_ip():
+def admin_block_ip():
     if not session.get("admin"):
         return redirect(url_for("home"))
     ip = request.form.get("ip")
@@ -635,7 +635,7 @@ def block_ip():
     return redirect(url_for("admin_dashboard"))
 
 @app.route("/admin/unblock_ip", methods=["POST"])
-def unblock_ip():
+def admin_unblock_ip():
     if not session.get("admin"):
         return redirect(url_for("home"))
     ip = request.form.get("ip")
@@ -646,6 +646,7 @@ def unblock_ip():
     conn.close()
     flash(f"Unblocked {ip}", "info")
     return redirect(url_for("admin_dashboard"))
+
 
 
 
