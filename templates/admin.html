@@ -66,7 +66,7 @@
     </ul>
   </div>
 
-  <!-- ✅ NEW User Files Section -->
+  <!-- User Files Section -->
   <div class="card">
     <h2 class="neon-text">User Files</h2>
     <table style="width:100%; border-collapse: collapse; color:#ff66cc;">
@@ -115,9 +115,9 @@
     </ul>
   </div>
 
-  <!-- Publichat Messages Section -->
+  <!-- Public Chat Messages Section -->
   <div class="card">
-    <h2 class="neon-text">Publichat Messages</h2>
+    <h2 class="neon-text">Public Chat Messages</h2>
     <ul class="chat-list">
       {% for m in messages %}
         <li>
@@ -133,7 +133,7 @@
     </ul>
   </div>
 
-  <!-- ✅ NEW Blocked IPs Section -->
+  <!-- Blocked IPs Section -->
   <div class="card">
     <h2 class="neon-text">Blocked IPs</h2>
     <form method="post" action="{{ url_for('block_ip') }}">
