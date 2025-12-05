@@ -525,6 +525,8 @@ def admin_dashboard():
     reports = cur.fetchall()
     cur.execute("SELECT * FROM messages")
     messages = cur.fetchall()
+    cur.execute("SELECT * FROM blocked_ips")
+    blocked_ips = cur.fetchall()
     conn.close()
 
     return render_template("admin.html",
@@ -532,7 +534,8 @@ def admin_dashboard():
                            comments=comments,
                            users=users,
                            reports=reports,
-                           messages=messages)
+                           messages=messages,
+                           blocked_ips=blocked_ips)
 
 
 @app.route("/admin/delete_video/<int:id>", methods=["POST"])
@@ -611,6 +614,39 @@ def admin_mark_report_reviewed(id):
     conn.close()
     flash("Report marked as reviewed.", "success")
     return redirect(url_for("admin_dashboard"))
+
+
+# ✅ NEW: Block/Unblock IP routes
+@app.route("/admin/block_ip", methods=["POST"])
+def block_ip():
+    if not session.get("admin"):
+        return redirect(url_for("home"))
+    ip = request.form.get("ip")
+    if ip:
+        conn = get_db()
+        cur = conn.cursor()
+        try:
+            cur.execute("INSERT INTO blocked_ips (ip_address) VALUES (?)", (ip,))
+            conn.commit()
+            flash(f"Blocked {ip}", "success")
+        except sqlite3.IntegrityError:
+            flash(f"{ip} is already blocked.", "warning")
+        conn.close()
+    return redirect(url_for("admin_dashboard"))
+
+@app.route("/admin/unblock_ip", methods=["POST"])
+def unblock_ip():
+    if not session.get("admin"):
+        return redirect(url_for("home"))
+    ip = request.form.get("ip")
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM blocked_ips WHERE ip_address=?", (ip,))
+    conn.commit()
+    conn.close()
+    flash(f"Unblocked {ip}", "info")
+    return redirect(url_for("admin_dashboard"))
+
 
 
 if __name__ == "__main__":
