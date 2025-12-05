@@ -2,35 +2,24 @@
 {% block content %}
 
 <div class="container">
-  <h1 class="neon-text big-title">Settings</h1>
-
   <div class="card">
-    <form method="post" action="{{ url_for('settings') }}">
-      <!-- Profile picture placeholder -->
-      <label for="profile_pic" class="neon-text">Profile Picture (coming soon)</label>
-      <input type="file" id="profile_pic" name="profile_pic" disabled>
-      <p class="meta">Profile picture upload disabled in this demo.</p>
+    <h1 class="neon-text big-title">Settings</h1>
 
-      <!-- Password change -->
-      <label for="password" class="neon-text">Change Password</label>
-      <input type="password" id="password" name="password" placeholder="New password">
+    <p class="meta">
+      Account Type: {% if user['premium'] %} Premium {% else %} Free {% endif %}
+    </p>
 
-      <!-- Theme toggle -->
-      <label for="theme" class="neon-text">Theme</label>
-      <select id="theme" name="theme">
-        <option value="light">Light Mode</option>
-        <option value="dark">Dark Mode</option>
-      </select>
+    <form method="POST">
+      <!-- Change Username -->
+      <label for="username">New Username</label>
+      <input type="text" id="username" name="username" placeholder="Enter new username">
 
-      <button type="submit" class="btn">Save Settings</button>
+      <!-- Change Password -->
+      <label for="password">New Password</label>
+      <input type="password" id="password" name="password" placeholder="Enter new password">
+
+      <button type="submit" class="btn">Save Changes</button>
     </form>
-  </div>
-
-  <!-- Navigation -->
-  <div class="card">
-    <a href="{{ url_for('home') }}" class="btn">Back to Home</a>
-    <a href="{{ url_for('profile') }}" class="btn">My Profile</a>
-    <a href="{{ url_for('publichat') }}" class="btn">Publichat</a>
   </div>
 </div>
 
