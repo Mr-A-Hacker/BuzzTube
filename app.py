@@ -20,15 +20,23 @@ def init_db():
     conn = get_db()
     cur = conn.cursor()
 
-    # Users
+    # Users table with email included
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE,
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             premium INTEGER DEFAULT 0
         )
     """)
+
+    # Try to add email column if missing (for old deployments)
+    try:
+        cur.execute("ALTER TABLE users ADD COLUMN email TEXT UNIQUE;")
+    except sqlite3.OperationalError:
+        # Column already exists, ignore
+        pass
 
     # Videos
     cur.execute("""
@@ -125,6 +133,7 @@ def premium_required(f):
 
         return f(*args, **kwargs)
     return decorated_function
+
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
