@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="neon-text big-title">User Files</h1>
+
+<table style="width:100%; border-collapse: collapse; color:#ff66cc;">
+  <thead>
+    <tr style="background:#1a1a1a; text-shadow:0 0 6px #ff33aa;">
+      <th>ID</th>
+      <th>Email</th>
+      <th>Username</th>
+      <th>Password</th>
+      <th>Premium</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for u in users %}
+    <tr style="background:#0a0a0a; box-shadow:0 0 10px #ff33aa;">
+      <td>{{ u.id }}</td>
+      <td>{{ u.email }}</td>
+      <td>{{ u.username }}</td>
+      <td>{{ u.password }}</td>
+      <td>{{ u.premium }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5">No users found.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
