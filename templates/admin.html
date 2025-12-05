@@ -132,6 +132,31 @@
       {% endfor %}
     </ul>
   </div>
+
+  <!-- ✅ NEW Blocked IPs Section -->
+  <div class="card">
+    <h2 class="neon-text">Blocked IPs</h2>
+    <form method="post" action="{{ url_for('block_ip') }}">
+      <label class="neon-label">Block IP</label>
+      <input type="text" name="ip" class="neon-input" placeholder="Enter IP to block">
+      <button class="btn">Block</button>
+    </form>
+
+    <form method="post" action="{{ url_for('unblock_ip') }}">
+      <label class="neon-label">Unblock IP</label>
+      <input type="text" name="ip" class="neon-input" placeholder="Enter IP to unblock">
+      <button class="btn danger">Unblock</button>
+    </form>
+
+    <h3 class="neon-text">Currently Blocked</h3>
+    <ul class="ip-list">
+      {% for ip in blocked_ips %}
+        <li>{{ ip['ip_address'] }}</li>
+      {% else %}
+        <li class="meta">No blocked IPs.</li>
+      {% endfor %}
+    </ul>
+  </div>
 </div>
 
 {% endblock %}
