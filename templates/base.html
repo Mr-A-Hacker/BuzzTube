@@ -150,6 +150,7 @@
     </div>
     <div class="nav-right">
       {% if session.get('user') %}
+        <a href="{{ url_for('settings') }}">Settings</a> <!-- 🔥 Settings button -->
         <a href="{{ url_for('logout') }}">Logout</a>
       {% else %}
         <a href="{{ url_for('login') }}">Login</a>
