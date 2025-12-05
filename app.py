@@ -20,20 +20,25 @@ def init_db():
     conn = get_db()
     cur = conn.cursor()
 
-    # Users table
+    # Users table with IP address
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE,
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
-            premium INTEGER DEFAULT 0
+            premium INTEGER DEFAULT 0,
+            ip_address TEXT
         )
     """)
 
-    # Try to add email column if missing (legacy deployments)
+    # Try to add missing columns for legacy deployments
     try:
         cur.execute("ALTER TABLE users ADD COLUMN email TEXT UNIQUE;")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        cur.execute("ALTER TABLE users ADD COLUMN ip_address TEXT;")
     except sqlite3.OperationalError:
         pass
 
@@ -153,12 +158,14 @@ def premium_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
         email = request.form.get("email")
         username = request.form.get("username")
         password = request.form.get("password")
+        ip_address = request.remote_addr  # capture public IP
 
         if not email or not username or not password:
             flash("Email, username, and password are required.", "danger")
@@ -168,8 +175,8 @@ def signup():
         cur = conn.cursor()
         try:
             cur.execute(
-                "INSERT INTO users (email, username, password, premium) VALUES (?, ?, ?, ?)",
-                (email, username, password, 0)
+                "INSERT INTO users (email, username, password, premium, ip_address) VALUES (?, ?, ?, ?, ?)",
+                (email, username, password, 0, ip_address)
             )
             conn.commit()
             flash("Signup successful! Please log in.", "success")
@@ -179,6 +186,7 @@ def signup():
         finally:
             conn.close()
     return render_template("signup.html")
+
 
 @app.route('/grant_premium/<username>', methods=['POST'])
 def grant_premium(username):
