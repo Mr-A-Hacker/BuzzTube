@@ -164,6 +164,18 @@ def signup():
     return render_template("signup.html")
 
 
+@app.route('/grant_premium/<username>', methods=['POST'])
+def grant_premium(username):
+    # Update user in DB
+    user = User.query.filter_by(username=username).first()
+    if user:
+        user.is_premium = True
+        db.session.commit()
+        # Set a session flag so the popup shows
+        session['premium_granted'] = True
+    return redirect(url_for('profile', username=username))
+
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
