@@ -354,10 +354,34 @@ def profile():
 @app.route("/settings", methods=["GET", "POST"])
 @premium_required
 def settings():
+    conn = get_db()
+    cur = conn.cursor()
+
     if request.method == "POST":
+        new_username = request.form.get("username")
+        new_password = request.form.get("password")
+
+        # Update username
+        if new_username:
+            cur.execute("UPDATE users SET username=? WHERE username=?", 
+                        (new_username, session["user"]))
+            session["user"] = new_username  # update session
+
+        # Update password
+        if new_password:
+            cur.execute("UPDATE users SET password=? WHERE username=?", 
+                        (new_password, session["user"]))
+
+        conn.commit()
         flash("Settings updated!", "success")
-        return redirect(url_for("profile"))
-    return render_template("settings.html")
+
+    # Fetch user info
+    cur.execute("SELECT * FROM users WHERE username=?", (session["user"],))
+    user = cur.fetchone()
+    conn.close()
+
+    return render_template("settings.html", user=user)
+
 @app.route("/like/<int:id>", methods=["POST"])
 @premium_required
 def like_video(id):
