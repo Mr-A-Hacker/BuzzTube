@@ -23,7 +23,7 @@ def init_db():
     conn = get_db()
     cur = conn.cursor()
 
-    # Users table with IP address
+    # Users table
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,16 +34,6 @@ def init_db():
             ip_address TEXT
         )
     """)
-
-    # Try to add missing columns for legacy deployments
-    try:
-        cur.execute("ALTER TABLE users ADD COLUMN email TEXT UNIQUE;")
-    except sqlite3.OperationalError:
-        pass
-    try:
-        cur.execute("ALTER TABLE users ADD COLUMN ip_address TEXT;")
-    except sqlite3.OperationalError:
-        pass
 
     # Videos
     cur.execute("""
@@ -85,7 +75,7 @@ def init_db():
         )
     """)
 
-    # Reports (Admin)
+    # Reports
     cur.execute("""
         CREATE TABLE IF NOT EXISTS reports (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -127,7 +117,6 @@ def init_db():
 
 # Initialize DB at startup
 init_db()
-
 # Middleware: block requests if IP is in blocked list
 @app.before_request
 def check_ip_block():
@@ -169,8 +158,6 @@ def premium_required(f):
 
         return f(*args, **kwargs)
     return decorated_function
-
-
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
@@ -199,97 +186,6 @@ def signup():
             conn.close()
     return render_template("signup.html")
 
-
-@app.route('/grant_premium_user/<username>', methods=['POST'])
-def grant_premium_user(username):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("UPDATE users SET premium=1 WHERE username=?", (username,))
-    conn.commit()
-    conn.close()
-
-    session['premium_granted'] = True
-    flash(f"Premium granted to {username}!", "success")
-
-    return redirect(url_for('profile', username=username))
-
-@app.route("/")
-@premium_required
-def home():
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT videos.*, users.premium
-        FROM videos
-        JOIN users ON videos.uploader = users.username
-        ORDER BY videos.id DESC
-    """)
-    videos = cur.fetchall()
-
-    cur.execute("SELECT premium FROM users WHERE username=?", (session["user"],))
-    user = cur.fetchone()
-    premium = user["premium"] if user else 0
-
-    conn.close()
-    return render_template("home.html", videos=videos, premium=premium)
-
-
-
-@app.route("/request_premium", methods=["POST"])
-def request_premium():
-    if "user" not in session:
-        return "Unauthorized", 403
-
-    user = session["user"]
-
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute(
-        "INSERT INTO premium_requests (username, status) VALUES (?, ?)",
-        (user, "pending")
-    )
-    conn.commit()
-    conn.close()
-
-    flash("Your premium request has been submitted!", "success")
-    return redirect(url_for("home"))
-
-
-
-
-@app.route("/grant_premium_request/<int:request_id>", methods=["POST"])
-def grant_premium_request(request_id):
-    if not session.get("admin"):
-        return "Unauthorized", 403
-
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("UPDATE premium_requests SET status = ? WHERE id = ?", ("granted", request_id))
-    conn.commit()
-    conn.close()
-
-    return redirect(url_for("admin_dashboard"))
-
-
-@app.route("/reject_premium/<int:request_id>", methods=["POST"])
-def reject_premium(request_id):
-    if not session.get("admin"):
-        return "Unauthorized", 403
-
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("UPDATE premium_requests SET status = ? WHERE id = ?", ("rejected", request_id))
-    conn.commit()
-    conn.close()
-
-    return redirect(url_for("admin_dashboard"))
-
-
-
-@app.route('/clear_premium_flag')
-def clear_premium_flag():
-    session.pop('premium_granted', None)
-    return '', 204
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -322,38 +218,6 @@ def login():
 
     return render_template("login.html")
 
-# Admin routes for IP blocking
-@app.route('/admin/block_ip', methods=['POST'])
-def block_ip():
-    if not session.get("admin"):
-        abort(403)
-    ip = request.form.get("ip")
-    if ip:
-        conn = get_db()
-        cur = conn.cursor()
-        try:
-            cur.execute("INSERT INTO blocked_ips (ip_address) VALUES (?)", (ip,))
-            conn.commit()
-            flash(f"Blocked {ip}", "success")
-        except sqlite3.IntegrityError:
-            flash(f"{ip} is already blocked", "warning")
-        conn.close()
-    return redirect(url_for("admin_dashboard"))
-
-@app.route('/admin/unblock_ip', methods=['POST'])
-def unblock_ip():
-    if not session.get("admin"):
-        abort(403)
-    ip = request.form.get("ip")
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("DELETE FROM blocked_ips WHERE ip_address=?", (ip,))
-    conn.commit()
-    conn.close()
-    flash(f"Unblocked {ip}", "success")
-    return redirect(url_for("admin_dashboard"))
-
-
 
 @app.route("/logout")
 def logout():
@@ -362,22 +226,38 @@ def logout():
     return redirect(url_for("login"))
 
 
+@app.route("/grant_premium_user/<username>", methods=["POST"])
+def grant_premium_user(username):
+    if not session.get("admin"):
+        abort(403)
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE users SET premium=1 WHERE username=?", (username,))
+    conn.commit()
+    conn.close()
+
+    flash(f"Premium granted to {username}!", "success")
+    return redirect(url_for("profile", username=username))
 @app.route("/")
 @premium_required
 def home():
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM videos ORDER BY id DESC")
+    cur.execute("""
+        SELECT videos.*, users.premium
+        FROM videos
+        JOIN users ON videos.uploader = users.username
+        ORDER BY videos.id DESC
+    """)
     videos = cur.fetchall()
 
-    premium = 0
     cur.execute("SELECT premium FROM users WHERE username=?", (session["user"],))
     user = cur.fetchone()
-    if user:
-        premium = user["premium"]
+    premium = user["premium"] if user else 0
 
     conn.close()
     return render_template("home.html", videos=videos, premium=premium)
+
 
 @app.route("/video/<int:id>", methods=["GET", "POST"])
 @premium_required
@@ -408,33 +288,24 @@ def video(id):
 @premium_required
 def upload():
     if request.method == "POST":
-        # Safely get title
         title = request.form.get("title")
         if not title:
             flash("Title is required.", "danger")
             return redirect(url_for("upload"))
 
-        # Safely get file
         file = request.files.get("file")
         if not file or file.filename.strip() == "":
             flash("No file selected.", "danger")
             return redirect(url_for("upload"))
 
         try:
-            # Secure filename
             filename = werkzeug.utils.secure_filename(file.filename)
-
-            # Ensure upload folder exists
             os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-
-            # Save file
             save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
             file.save(save_path)
 
-            # Web path for serving
             web_path = url_for("static", filename=f"uploads/{filename}")
 
-            # Insert into DB
             conn = get_db()
             cur = conn.cursor()
             cur.execute(
@@ -448,12 +319,10 @@ def upload():
             return redirect(url_for("home"))
 
         except Exception as e:
-            # Catch unexpected errors so Railway doesn't crash
             flash(f"Upload failed: {e}", "danger")
             return redirect(url_for("upload"))
 
     return render_template("upload.html")
-
 
 
 @app.route("/leaderboard")
@@ -516,13 +385,11 @@ def settings():
         new_username = request.form.get("username")
         new_password = request.form.get("password")
 
-        # Update username
         if new_username:
             cur.execute("UPDATE users SET username=? WHERE username=?", 
                         (new_username, session["user"]))
-            session["user"] = new_username  # update session
+            session["user"] = new_username
 
-        # Update password
         if new_password:
             cur.execute("UPDATE users SET password=? WHERE username=?", 
                         (new_password, session["user"]))
@@ -530,12 +397,12 @@ def settings():
         conn.commit()
         flash("Settings updated!", "success")
 
-    # Fetch user info
     cur.execute("SELECT * FROM users WHERE username=?", (session["user"],))
     user = cur.fetchone()
     conn.close()
 
     return render_template("settings.html", user=user)
+
 
 @app.route("/like/<int:id>", methods=["POST"])
 @premium_required
@@ -549,23 +416,19 @@ def like_video(id):
         flash("Video not found.", "danger")
         return redirect(url_for("home"))
 
-    # Prevent self-like
     if video["uploader"] == session["user"]:
         conn.close()
         flash("You cannot like your own video.", "warning")
         return redirect(url_for("video", id=id))
 
-    # Check if user already liked
     cur.execute("SELECT * FROM likes WHERE video_id=? AND user=?", (id, session["user"]))
     existing = cur.fetchone()
 
     if existing:
-        # Unlike
         cur.execute("DELETE FROM likes WHERE video_id=? AND user=?", (id, session["user"]))
         cur.execute("UPDATE videos SET likes = likes - 1 WHERE id=?", (id,))
         flash("You unliked the video.", "info")
     else:
-        # Like
         cur.execute("INSERT INTO likes (video_id, user) VALUES (?, ?)", (id, session["user"]))
         cur.execute("UPDATE videos SET likes = likes + 1 WHERE id=?", (id,))
         flash("You liked the video!", "success")
@@ -598,8 +461,6 @@ def follow_user(username):
 
     conn.close()
     return redirect(url_for("profile"))
-
-
 @app.route("/admin")
 def admin_dashboard():
     if not session.get("admin"):
@@ -712,7 +573,7 @@ def admin_mark_report_reviewed(id):
     return redirect(url_for("admin_dashboard"))
 
 
-# ✅ NEW: Block/Unblock IP routes
+# ✅ Block/Unblock IP routes
 @app.route("/admin/block_ip", methods=["POST"])
 def admin_block_ip():
     if not session.get("admin"):
@@ -744,7 +605,7 @@ def admin_unblock_ip():
     return redirect(url_for("admin_dashboard"))
 
 
-# ✅ NEW: Premium request management
+# ✅ Premium request management
 @app.route("/admin/grant_premium_request/<int:request_id>", methods=["POST"])
 def admin_grant_premium_request(request_id):
     if not session.get("admin"):
@@ -772,10 +633,6 @@ def admin_reject_premium_request(request_id):
     conn.close()
     flash("Premium request rejected.", "info")
     return redirect(url_for("admin_dashboard"))
-
-
-
-
 if __name__ == "__main__":
     init_db()
     app.run(host="0.0.0.0", port=5000, debug=True)
