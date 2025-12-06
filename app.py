@@ -233,6 +233,35 @@ def publicchat():
         sender = session["user"]
 
         recipient = None
+        # Detect whispers: messages starting with @username
+        if message.startswith("@"):
+            parts = message.split(" ", 1)
+            if len(parts) > 1:
+                recipient = parts[0][1:]  # strip '@'
+                message = parts[1]        # actual message text
+
+        cur.execute(
+            "INSERT INTO messages (user, message, recipient) VALUES (?, ?, ?)",
+            (sender, message, recipient)
+        )
+        conn.commit()
+
+    # Fetch recent messages
+    cur.execute("SELECT * FROM messages ORDER BY id DESC LIMIT 50")
+    messages = cur.fetchall()
+    conn.close()
+
+    return render_template("publicchat.html", messages=messages)
+
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    if request.method == "POST":
+        message = request.form.get("message")
+        sender = session["user"]
+
+        recipient = None
         if message.startswith("@"):
             parts = message.split(" ", 1)
             if len(parts) > 1:
