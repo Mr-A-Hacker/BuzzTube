@@ -228,6 +228,37 @@ def video(id):
     premium = user["premium"] if user else 0
     return render_template("video.html", v=v, comments=comments, premium=premium)
 
+@app.route("/publicchat", methods=["GET", "POST"])
+def publicchat():
+    if "user" not in session:
+        flash("Login required to chat.", "danger")
+        return redirect(url_for("login"))
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    if request.method == "POST":
+        message = request.form.get("message")
+        sender = session["user"]
+
+        recipient = None
+        if message.startswith("@"):
+            parts = message.split(" ", 1)
+            if len(parts) > 1:
+                recipient = parts[0][1:]  # strip '@'
+                message = parts[1]        # actual message text
+
+        cur.execute("INSERT INTO messages (user, message, recipient) VALUES (?, ?, ?)",
+                    (sender, message, recipient))
+        conn.commit()
+
+    cur.execute("SELECT * FROM messages ORDER BY id DESC LIMIT 50")
+    messages = cur.fetchall()
+    conn.close()
+
+    return render_template("publicchat.html", messages=messages)
+
+
 
 @app.route("/upload", methods=["GET", "POST"])
 @premium_required
