@@ -138,13 +138,13 @@
   <!-- Blocked IPs Section -->
   <div class="card">
     <h2 class="neon-text">Blocked IPs</h2>
-    <form method="post" action="{{ url_for('block_ip') }}">
+    <form method="post" action="{{ url_for('admin_block_ip') }}">
       <label class="neon-label">Block IP</label>
       <input type="text" name="ip" class="neon-input" placeholder="Enter IP to block">
       <button class="btn">Block</button>
     </form>
 
-    <form method="post" action="{{ url_for('unblock_ip') }}">
+    <form method="post" action="{{ url_for('admin_unblock_ip') }}">
       <label class="neon-label">Unblock IP</label>
       <input type="text" name="ip" class="neon-input" placeholder="Enter IP to unblock">
       <button class="btn danger">Unblock</button>
@@ -170,10 +170,10 @@
           <span class="meta">Request #{{ req['id'] }} • Status: {{ req['status'] }}</span>
 
           {% if req['status'] == 'pending' %}
-            <form action="{{ url_for('grant_premium_request', request_id=req['id']) }}" method="POST" style="display:inline;">
+            <form action="{{ url_for('admin_grant_premium_request', request_id=req['id']) }}" method="POST" style="display:inline;">
               <button type="submit" class="btn premium-btn">Grant</button>
             </form>
-            <form action="{{ url_for('reject_premium', request_id=req['id']) }}" method="POST" style="display:inline;">
+            <form action="{{ url_for('admin_reject_premium_request', request_id=req['id']) }}" method="POST" style="display:inline;">
               <button type="submit" class="btn danger">Reject</button>
             </form>
           {% elif req['status'] == 'granted' %}
@@ -190,3 +190,4 @@
 </div>
 
 {% endblock %}
+
