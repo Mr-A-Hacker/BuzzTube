@@ -153,6 +153,30 @@
         0 0 38px rgba(255,51,170,0.45);
       transform: perspective(800px) translateZ(20px) scale(1.03);
     }
+    /* Premium Popup Styling */
+    .premium-popup {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .premium-content {
+      background: #1a1a1a;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 25px #ffd700;
+      text-align: center;
+      max-width: 500px;
+      animation: glowPulse 2s infinite alternate;
+    }
+    @keyframes glowPulse {
+      from { box-shadow: 0 0 25px #ffd700; }
+      to { box-shadow: 0 0 45px #ffcc00; }
+    }
   </style>
 </head>
 <body>
@@ -166,17 +190,18 @@
       <a href="{{ url_for('upload') }}">Upload</a>
       <a href="{{ url_for('profile') }}">Profile</a>
       {% if session.get('admin') %}
+        {% if session.get('admin') %}
         <a href="{{ url_for('admin_dashboard') }}">Admin</a>
       {% endif %}
     </div>
     <div class="nav-right">
       {% if session.get('user') %}
         <a href="{{ url_for('settings') }}" class="btn settings-btn">⚙️ Settings</a>
-        <a href="{{ url_for('premium') }}" class="btn premium-btn">🌟 Get Premium</a>
+        <a href="javascript:void(0);" class="btn premium-btn" onclick="openPremium()">🌟 Get Premium</a>
         <a href="{{ url_for('logout') }}">Logout</a>
       {% else %}
         <a href="{{ url_for('login') }}">Login</a>
-        <a href="{{ url_for('signup') }}">Signup</a>
+        <a href="{{ url_for('signup') }}">        <a href="{{ url_for('signup') }}">Signup</a>
       {% endif %}
     </div>
   </div>
@@ -197,22 +222,26 @@
     {% block content %}{% endblock %}
   </div>
 
-    <!-- Premium Popup -->
-  {% if session.get('premium_granted') %}
-  <div id="premium-popup" class="premium-popup" style="position:fixed; top:0; left:0; width:100%; height:100%; 
-       background:rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:9999;">
-    <div class="premium-content" style="background:#1a1a1a; padding:30px; border-radius:12px; 
-         box-shadow:0 0 25px #ffd700; text-align:center; max-width:500px;">
-      <h1 style="color:#ffd700; text-shadow:0 0 10px #ffcc00;">🎉 Admin has granted Premium!</h1>
-      <p class="neon-text">You now have access to exclusive features.</p>
+  <!-- Premium Popup -->
+  <div id="premium-popup" class="premium-popup">
+    <div class="premium-content">
+      <h1 style="color:#ffd700; text-shadow:0 0 10px #ffcc00;">🌟 Premium Membership</h1>
+      <p class="neon-text">Upgrade today and unlock exclusive features, advanced tools, and priority support.</p>
+      <h3 style="color:#ffcc00;">Payment Options</h3>
+      <p>💵 Cash</p>
+      <p>Zelle (Username: 3134512552)</p>
       <button class="btn premium-btn" onclick="closePremium()">Close</button>
     </div>
   </div>
+
   <script>
+    function openPremium() {
+      document.getElementById("premium-popup").style.display = "flex";
+    }
     function closePremium() {
       document.getElementById("premium-popup").style.display = "none";
-      // Optionally clear the flag via backend
-      fetch("{{ url_for('clear_premium_flag') }}");
     }
   </script>
-  {% endif %}
+
+</body>
+</html>
