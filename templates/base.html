@@ -211,26 +211,40 @@
     {% block content %}{% endblock %}
   </div>
 
-  <!-- Premium Popup -->
-  <div id="premium-popup" class="premium-popup">
-    <div class="premium-content">
-      <h1 style="color:#ffd700; text-shadow:0 0 10px #ffcc00;">🌟 Premium Membership</h1>
-      <p class="neon-text">Upgrade today and unlock exclusive features, advanced tools, and priority support.</p>
-      <h3 style="color:#ffcc00;">Payment Options</h3>
-      <p>💵 Cash</p>
-      <p>Zelle (Username: 3134512552)</p>
-      <button class="btn premium-btn" onclick="closePremium()">Close</button>
-    </div>
+ <!-- Premium Popup -->
+<div id="premium-popup" class="premium-popup">
+  <div class="premium-content">
+    <h1 style="color:#ffd700; text-shadow:0 0 10px #ffcc00;">🌟 Premium Membership</h1>
+    <p class="neon-text">Request Premium access. An admin will review your request.</p>
+    
+    <!-- Request Premium button -->
+    <button class="btn premium-btn" onclick="requestPremium()">Request Premium</button>
+    
+    <!-- Close button -->
+    <button class="btn settings-btn" onclick="closePremium()">Close</button>
   </div>
+</div>
 
-  <script>
-    function openPremium() {
-      document.getElementById("premium-popup").style.display = "flex";
-    }
-    function closePremium() {
-      document.getElementById("premium-popup").style.display = "none";
-    }
-  </script>
+<script>
+  function openPremium() {
+    document.getElementById("premium-popup").style.display = "flex";
+  }
+  function closePremium() {
+    document.getElementById("premium-popup").style.display = "none";
+  }
+  function requestPremium() {
+    fetch("{{ url_for('request_premium') }}", { method: "POST" })
+      .then(response => {
+        if (response.ok) {
+          alert("Your Premium request has been sent to the admin!");
+          closePremium();
+        } else {
+          alert("Error sending request.");
+        }
+      });
+  }
+</script>
+
 
 </body>
 </html>
