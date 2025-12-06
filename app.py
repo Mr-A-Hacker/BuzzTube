@@ -89,7 +89,17 @@ def init_db():
             following TEXT
         )
     """)
+    # Messages (Public Chat)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user TEXT,
+            message TEXT,
+            recipient TEXT
+        )
+    """)
 
+    
     conn.commit()
     conn.close()
 
