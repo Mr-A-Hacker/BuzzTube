@@ -187,6 +187,7 @@ def signup():
     return render_template("signup.html")
 
 @app.route("/request_premium", methods=["POST"])
+@premium_required
 def request_premium():
     if "user" not in session:
         return "Unauthorized", 403
