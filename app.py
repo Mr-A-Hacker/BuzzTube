@@ -1,15 +1,19 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, abort
 import sqlite3, os, time
 from functools import wraps
+import werkzeug
 
+# --- Flask app setup ---
 app = Flask(__name__)
-app.secret_key = "supersecretkey"   # replace with env var in production
+app.secret_key = "supersecretkey"   # ⚠️ replace with env var in production
 DB_FILE = "buzz.db"
 
+# --- Uploads folder setup ---
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
+# --- Database helper ---
 def get_db():
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
@@ -19,13 +23,15 @@ def init_db():
     conn = get_db()
     cur = conn.cursor()
 
-    # Users
+    # Users table
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE,
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
-            premium INTEGER DEFAULT 0
+            premium INTEGER DEFAULT 0,
+            ip_address TEXT
         )
     """)
 
@@ -60,17 +66,16 @@ def init_db():
         )
     """)
 
-    # Messages (Public Chat with whisper support)
+    # Messages (Public Chat)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user TEXT,
-            message TEXT,
-            recipient TEXT
+            message TEXT
         )
     """)
 
-    # Reports (Admin)
+    # Reports
     cur.execute("""
         CREATE TABLE IF NOT EXISTS reports (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -90,12 +95,39 @@ def init_db():
         )
     """)
 
+    # Blocked IPs
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS blocked_ips (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ip_address TEXT UNIQUE
+        )
+    """)
+
+    # Premium Requests
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS premium_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            status TEXT CHECK(status IN ('pending','granted','rejected')) NOT NULL DEFAULT 'pending'
+        )
+    """)
+
     conn.commit()
     conn.close()
 
 # Initialize DB at startup
 init_db()
-
+# Middleware: block requests if IP is in blocked list
+@app.before_request
+def check_ip_block():
+    ip = request.remote_addr
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT 1 FROM blocked_ips WHERE ip_address=?", (ip,))
+    if cur.fetchone():
+        conn.close()
+        abort(403)  # Forbidden
+    conn.close()
 
 # Premium decorator
 def premium_required(f):
@@ -129,33 +161,70 @@ def premium_required(f):
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        email = request.form.get("email")
+        username = request.form.get("username")
+        password = request.form.get("password")
+        ip_address = request.remote_addr  # capture public IP
+
+        if not email or not username or not password:
+            flash("Email, username, and password are required.", "danger")
+            return redirect(url_for("signup"))
 
         conn = get_db()
         cur = conn.cursor()
         try:
-            cur.execute("INSERT INTO users (username, password, premium) VALUES (?, ?, ?)",
-                        (username, password, 0))
+            cur.execute(
+                "INSERT INTO users (email, username, password, premium, ip_address) VALUES (?, ?, ?, ?, ?)",
+                (email, username, password, 0, ip_address)
+            )
             conn.commit()
             flash("Signup successful! Please log in.", "success")
             return redirect(url_for("login"))
         except sqlite3.IntegrityError:
-            flash("Username already exists.", "danger")
+            flash("Email or username already exists.", "danger")
         finally:
             conn.close()
     return render_template("signup.html")
+
+@app.route("/request_premium", methods=["POST"])
+@premium_required
+def request_premium():
+    if "user" not in session:
+        return "Unauthorized", 403
+
+    user = session["user"]
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO premium_requests (username, status) VALUES (?, ?)",
+        (user, "pending")
+    )
+    conn.commit()
+    conn.close()
+
+    flash("Your premium request has been submitted!", "success")
+    return redirect(url_for("home"))
+
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        email = request.form.get("email")
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if not email or not username or not password:
+            flash("Email, username, and password are required.", "danger")
+            return redirect(url_for("login"))
 
         conn = get_db()
         cur = conn.cursor()
-        cur.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
+        cur.execute(
+            "SELECT * FROM users WHERE email=? AND username=? AND password=?",
+            (email, username, password)
+        )
         user = cur.fetchone()
         conn.close()
 
@@ -178,22 +247,38 @@ def logout():
     return redirect(url_for("login"))
 
 
+@app.route("/grant_premium_user/<username>", methods=["POST"])
+def grant_premium_user(username):
+    if not session.get("admin"):
+        abort(403)
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE users SET premium=1 WHERE username=?", (username,))
+    conn.commit()
+    conn.close()
+
+    flash(f"Premium granted to {username}!", "success")
+    return redirect(url_for("profile", username=username))
 @app.route("/")
 @premium_required
 def home():
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM videos ORDER BY id DESC")
+    cur.execute("""
+        SELECT videos.*, users.premium
+        FROM videos
+        JOIN users ON videos.uploader = users.username
+        ORDER BY videos.id DESC
+    """)
     videos = cur.fetchall()
 
-    premium = 0
     cur.execute("SELECT premium FROM users WHERE username=?", (session["user"],))
     user = cur.fetchone()
-    if user:
-        premium = user["premium"]
+    premium = user["premium"] if user else 0
 
     conn.close()
     return render_template("home.html", videos=videos, premium=premium)
+
 
 @app.route("/video/<int:id>", methods=["GET", "POST"])
 @premium_required
@@ -219,93 +304,44 @@ def video(id):
     premium = user["premium"] if user else 0
     return render_template("video.html", v=v, comments=comments, premium=premium)
 
-@app.route("/publicchat", methods=["GET", "POST"])
-def publicchat():
-    if "user" not in session:
-        flash("Login required to chat.", "danger")
-        return redirect(url_for("login"))
-
-    conn = get_db()
-    cur = conn.cursor()
-
-    if request.method == "POST":
-        message = request.form.get("message")
-        sender = session["user"]
-
-        recipient = None
-        # Detect whispers: messages starting with @username
-        if message.startswith("@"):
-            parts = message.split(" ", 1)
-            if len(parts) > 1:
-                recipient = parts[0][1:]  # strip '@'
-                message = parts[1]        # actual message text
-
-        cur.execute(
-            "INSERT INTO messages (user, message, recipient) VALUES (?, ?, ?)",
-            (sender, message, recipient)
-        )
-        conn.commit()
-
-    # Fetch recent messages
-    cur.execute("SELECT * FROM messages ORDER BY id DESC LIMIT 50")
-    messages = cur.fetchall()
-    conn.close()
-
-    return render_template("publicchat.html", messages=messages)
-
-
-    conn = get_db()
-    cur = conn.cursor()
-
-    if request.method == "POST":
-        message = request.form.get("message")
-        sender = session["user"]
-
-        recipient = None
-        if message.startswith("@"):
-            parts = message.split(" ", 1)
-            if len(parts) > 1:
-                recipient = parts[0][1:]  # strip '@'
-                message = parts[1]        # actual message text
-
-        cur.execute("INSERT INTO messages (user, message, recipient) VALUES (?, ?, ?)",
-                    (sender, message, recipient))
-        conn.commit()
-
-    cur.execute("SELECT * FROM messages ORDER BY id DESC LIMIT 50")
-    messages = cur.fetchall()
-    conn.close()
-
-    return render_template("publicchat.html", messages=messages)
-
-
 
 @app.route("/upload", methods=["GET", "POST"])
 @premium_required
 def upload():
     if request.method == "POST":
-        title = request.form["title"]
-        file = request.files.get("file")
+        title = request.form.get("title")
+        if not title:
+            flash("Title is required.", "danger")
+            return redirect(url_for("upload"))
 
-        if not file or file.filename == "":
+        file = request.files.get("file")
+        if not file or file.filename.strip() == "":
             flash("No file selected.", "danger")
             return redirect(url_for("upload"))
 
-        filename = werkzeug.utils.secure_filename(file.filename)
-        save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        file.save(save_path)
+        try:
+            filename = werkzeug.utils.secure_filename(file.filename)
+            os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+            save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            file.save(save_path)
 
-        web_path = url_for("static", filename=f"uploads/{filename}")
+            web_path = url_for("static", filename=f"uploads/{filename}")
 
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("INSERT INTO videos (title, uploader, filepath) VALUES (?, ?, ?)",
-                    (title, session["user"], web_path))
-        conn.commit()
-        conn.close()
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute(
+                "INSERT INTO videos (title, uploader, filepath) VALUES (?, ?, ?)",
+                (title, session["user"], web_path)
+            )
+            conn.commit()
+            conn.close()
 
-        flash("Video uploaded successfully!", "success")
-        return redirect(url_for("home"))
+            flash("Video uploaded successfully!", "success")
+            return redirect(url_for("home"))
+
+        except Exception as e:
+            flash(f"Upload failed: {e}", "danger")
+            return redirect(url_for("upload"))
 
     return render_template("upload.html")
 
@@ -360,13 +396,36 @@ def profile():
     return render_template("profile.html", user=user, videos=videos, subs=subs)
 
 
+
 @app.route("/settings", methods=["GET", "POST"])
 @premium_required
 def settings():
+    conn = get_db()
+    cur = conn.cursor()
+
     if request.method == "POST":
+        new_username = request.form.get("username")
+        new_password = request.form.get("password")
+
+        if new_username:
+            cur.execute("UPDATE users SET username=? WHERE username=?", 
+                        (new_username, session["user"]))
+            session["user"] = new_username
+
+        if new_password:
+            cur.execute("UPDATE users SET password=? WHERE username=?", 
+                        (new_password, session["user"]))
+
+        conn.commit()
         flash("Settings updated!", "success")
-        return redirect(url_for("profile"))
-    return render_template("settings.html")
+
+    cur.execute("SELECT * FROM users WHERE username=?", (session["user"],))
+    user = cur.fetchone()
+    conn.close()
+
+    return render_template("settings.html", user=user)
+
+
 @app.route("/like/<int:id>", methods=["POST"])
 @premium_required
 def like_video(id):
@@ -379,23 +438,19 @@ def like_video(id):
         flash("Video not found.", "danger")
         return redirect(url_for("home"))
 
-    # Prevent self-like
     if video["uploader"] == session["user"]:
         conn.close()
         flash("You cannot like your own video.", "warning")
         return redirect(url_for("video", id=id))
 
-    # Check if user already liked
     cur.execute("SELECT * FROM likes WHERE video_id=? AND user=?", (id, session["user"]))
     existing = cur.fetchone()
 
     if existing:
-        # Unlike
         cur.execute("DELETE FROM likes WHERE video_id=? AND user=?", (id, session["user"]))
         cur.execute("UPDATE videos SET likes = likes - 1 WHERE id=?", (id,))
         flash("You unliked the video.", "info")
     else:
-        # Like
         cur.execute("INSERT INTO likes (video_id, user) VALUES (?, ?)", (id, session["user"]))
         cur.execute("UPDATE videos SET likes = likes + 1 WHERE id=?", (id,))
         flash("You liked the video!", "success")
@@ -403,24 +458,6 @@ def like_video(id):
     conn.commit()
     conn.close()
     return redirect(url_for("video", id=id))
-
-
-
-@app.route("/request_premium", methods=["POST"])
-def request_premium():
-    if "user" not in session:
-        flash("Login required to request premium.", "danger")
-        return redirect(url_for("login"))
-
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("INSERT INTO premium_requests (username) VALUES (?)", (session["user"],))
-    conn.commit()
-    conn.close()
-
-    flash("Your Premium request has been sent to the admin!", "success")
-    return redirect(url_for("home"))
-
 
 
 @app.route("/follow/<string:username>", methods=["POST"])
@@ -446,8 +483,6 @@ def follow_user(username):
 
     conn.close()
     return redirect(url_for("profile"))
-
-
 @app.route("/admin")
 def admin_dashboard():
     if not session.get("admin"):
@@ -466,6 +501,10 @@ def admin_dashboard():
     reports = cur.fetchall()
     cur.execute("SELECT * FROM messages")
     messages = cur.fetchall()
+    cur.execute("SELECT * FROM blocked_ips")
+    blocked_ips = cur.fetchall()
+    cur.execute("SELECT * FROM premium_requests ORDER BY id DESC")
+    premium_requests = cur.fetchall()
     conn.close()
 
     return render_template("admin.html",
@@ -473,7 +512,9 @@ def admin_dashboard():
                            comments=comments,
                            users=users,
                            reports=reports,
-                           messages=messages)
+                           messages=messages,
+                           blocked_ips=blocked_ips,
+                           premium_requests=premium_requests)
 
 
 @app.route("/admin/delete_video/<int:id>", methods=["POST"])
@@ -554,6 +595,66 @@ def admin_mark_report_reviewed(id):
     return redirect(url_for("admin_dashboard"))
 
 
+# ✅ Block/Unblock IP routes
+@app.route("/admin/block_ip", methods=["POST"])
+def admin_block_ip():
+    if not session.get("admin"):
+        return redirect(url_for("home"))
+    ip = request.form.get("ip")
+    if ip:
+        conn = get_db()
+        cur = conn.cursor()
+        try:
+            cur.execute("INSERT INTO blocked_ips (ip_address) VALUES (?)", (ip,))
+            conn.commit()
+            flash(f"Blocked {ip}", "success")
+        except sqlite3.IntegrityError:
+            flash(f"{ip} is already blocked.", "warning")
+        conn.close()
+    return redirect(url_for("admin_dashboard"))
+
+@app.route("/admin/unblock_ip", methods=["POST"])
+def admin_unblock_ip():
+    if not session.get("admin"):
+        return redirect(url_for("home"))
+    ip = request.form.get("ip")
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM blocked_ips WHERE ip_address=?", (ip,))
+    conn.commit()
+    conn.close()
+    flash(f"Unblocked {ip}", "info")
+    return redirect(url_for("admin_dashboard"))
+
+
+# ✅ Premium request management
+@app.route("/admin/grant_premium_request/<int:request_id>", methods=["POST"])
+def admin_grant_premium_request(request_id):
+    if not session.get("admin"):
+        return redirect(url_for("home"))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE premium_requests SET status='granted' WHERE id=?", (request_id,))
+    cur.execute("""
+        UPDATE users SET premium=1 
+        WHERE username=(SELECT username FROM premium_requests WHERE id=?)
+    """, (request_id,))
+    conn.commit()
+    conn.close()
+    flash("Premium request granted.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+@app.route("/admin/reject_premium_request/<int:request_id>", methods=["POST"])
+def admin_reject_premium_request(request_id):
+    if not session.get("admin"):
+        return redirect(url_for("home"))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE premium_requests SET status='rejected' WHERE id=?", (request_id,))
+    conn.commit()
+    conn.close()
+    flash("Premium request rejected.", "info")
+    return redirect(url_for("admin_dashboard"))
 if __name__ == "__main__":
     init_db()
     app.run(host="0.0.0.0", port=5000, debug=True)
