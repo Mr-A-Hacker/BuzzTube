@@ -68,13 +68,11 @@
       transform: translateZ(5px) scale(1.05);
       box-shadow: 0 0 25px #ff66cc;
     }
-    /* Settings button (neutral) */
     .settings-btn {
       background: #222;
       color: #fff;
       box-shadow: 0 0 10px #555;
     }
-    /* Premium button (golden neon) */
     .premium-btn {
       background: linear-gradient(45deg, #ffd700, #ffcc00);
       color: #000;
@@ -103,7 +101,6 @@
     .video-list { list-style: none; padding: 0; }
     .video-list li { margin-bottom: 20px; }
     .meta { font-size: 0.9em; color: #aaa; }
-    /* Neon Input Styling */
     .neon-label {
       color: #ff66cc;
       font-weight: bold;
@@ -153,7 +150,6 @@
         0 0 38px rgba(255,51,170,0.45);
       transform: perspective(800px) translateZ(20px) scale(1.03);
     }
-    /* Premium Popup Styling */
     .premium-popup {
       display: none;
       position: fixed;
@@ -181,7 +177,7 @@
 </head>
 <body>
 
-    <!-- Navigation -->
+  <!-- Navigation -->
   <div class="navbar">
     <div class="nav-left">
       <a href="{{ url_for('home') }}">Home</a>
@@ -199,52 +195,4 @@
         <a href="javascript:void(0);" class="btn premium-btn" onclick="openPremium()">🌟 Get Premium</a>
         <a href="{{ url_for('logout') }}">Logout</a>
       {% else %}
-        <a href="{{ url_for('login') }}">Login</a>
-        <a href="{{ url_for('signup') }}">Signup</a>
-      {% endif %}
-    </div>
-  </div>
-
-
-  <!-- Page Content -->
-  <div class="container">
-    {% block content %}{% endblock %}
-  </div>
-
- <!-- Premium Popup -->
-<div id="premium-popup" class="premium-popup">
-  <div class="premium-content">
-    <h1 style="color:#ffd700; text-shadow:0 0 10px #ffcc00;">🌟 Premium Membership</h1>
-    <p class="neon-text">Request Premium access. An admin will review your request.</p>
-    
-    <!-- Request Premium button -->
-    <button class="btn premium-btn" onclick="requestPremium()">Request Premium</button>
-    
-    <!-- Close button -->
-    <button class="btn settings-btn" onclick="closePremium()">Close</button>
-  </div>
-</div>
-
-<script>
-  function openPremium() {
-    document.getElementById("premium-popup").style.display = "flex";
-  }
-  function closePremium() {
-    document.getElementById("premium-popup").style.display = "none";
-  }
-  function requestPremium() {
-    fetch("{{ url_for('request_premium') }}", { method: "POST" })
-      .then(response => {
-        if (response.ok) {
-          alert("Your Premium request has been sent to the admin!");
-          closePremium();
-        } else {
-          alert("Error sending request.");
-        }
-      });
-  }
-</script>
-
-
-</body>
-</html>
+        <a
