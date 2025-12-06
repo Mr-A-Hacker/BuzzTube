@@ -218,6 +218,23 @@ def request_premium():
     return "Request submitted", 200
 
 
+@app.route("/grant_premium/<int:request_id>", methods=["POST"])
+def grant_premium(request_id):
+    if not session.get("admin"):
+        return "Unauthorized", 403
+    db.execute("UPDATE premium_requests SET status = ? WHERE id = ?", ("granted", request_id))
+    db.commit()
+    return redirect(url_for("admin_dashboard"))
+
+@app.route("/reject_premium/<int:request_id>", methods=["POST"])
+def reject_premium(request_id):
+    if not session.get("admin"):
+        return "Unauthorized", 403
+    db.execute("UPDATE premium_requests SET status = ? WHERE id = ?", ("rejected", request_id))
+    db.commit()
+    return redirect(url_for("admin_dashboard"))
+
+
 
 @app.route('/clear_premium_flag')
 def clear_premium_flag():
