@@ -2,7 +2,7 @@
 {% block content %}
 
 <div class="container">
-  <h1 class="neon-text big-title">BuzzTub Publichat</h1>
+  <h1 class="neon-text big-title">BuzzTube Public Chat</h1>
 
   <!-- Chat messages -->
   <div class="card chat-box">
@@ -10,9 +10,17 @@
     {% if messages %}
       <ul class="chat-list">
         {% for m in messages %}
-          <li class="chat-item">
-            <strong>{{ m.user }}</strong>: {{ m.message }}
-          </li>
+          {% if m.recipient %}
+            {% if m.recipient == session['user'] or m.user == session['user'] %}
+              <li class="chat-item private-msg">
+                <strong>{{ m.user }} ➝ @{{ m.recipient }}</strong>: {{ m.message }}
+              </li>
+            {% endif %}
+          {% else %}
+            <li class="chat-item public-msg">
+              <strong>{{ m.user }}</strong>: {{ m.message }}
+            </li>
+          {% endif %}
         {% endfor %}
       </ul>
     {% else %}
@@ -22,7 +30,7 @@
 
   <!-- Message form -->
   <div class="card">
-    <form method="post" action="{{ url_for('publichat') }}">
+    <form method="post" action="{{ url_for('publicchat') }}">
       <textarea name="message" placeholder="Type your message..." required></textarea>
       <button type="submit" class="btn">Send</button>
     </form>
