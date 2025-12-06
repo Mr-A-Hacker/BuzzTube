@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import sqlite3, os, time
 from functools import wraps
-import werkzeug
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"   # replace with env var in production
@@ -61,12 +60,13 @@ def init_db():
         )
     """)
 
-    # Messages (Publichat)
+    # Messages (Public Chat with whisper support)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user TEXT,
-            message TEXT
+            message TEXT,
+            recipient TEXT
         )
     """)
 
@@ -89,22 +89,13 @@ def init_db():
             following TEXT
         )
     """)
-    # Messages (Public Chat)
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user TEXT,
-            message TEXT,
-            recipient TEXT
-        )
-    """)
 
-    
     conn.commit()
     conn.close()
 
 # Initialize DB at startup
 init_db()
+
 
 # Premium decorator
 def premium_required(f):
