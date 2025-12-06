@@ -1,5 +1,3 @@
-
-
 {% extends "base.html" %}
 {% block content %}
 
@@ -12,6 +10,15 @@
 <div id="main-content" style="display:none;">
   <div class="container">
     <h1 class="neon-text big-title">BuzzTube Home</h1>
+
+    <!-- Premium Request -->
+    {% if premium == 0 %}
+      <div class="premium-request">
+        <form action="{{ url_for('request_premium') }}" method="POST">
+          <button type="submit" class="btn three-d-btn">Request Premium</button>
+        </form>
+      </div>
+    {% endif %}
 
     <!-- Video Feed -->
     <ul class="video-list">
@@ -81,6 +88,8 @@
   .neon-input { width:100%; padding:14px 18px; border:1px solid rgba(255,102,204,0.4); border-radius:14px; background:#0a0a0a; color:#ff66cc; font-weight:600; box-shadow:inset 0 0 12px rgba(255,51,170,0.4), 0 0 14px rgba(255,51,170,0.4); transition:.3s; }
   .neon-input::placeholder { color:#ff99dd; text-shadow:0 0 8px #ff33aa; font-style:italic; }
   .neon-input:focus { background:linear-gradient(160deg,#0a0a0a,#151515); border-color:#ff66cc; box-shadow:0 0 30px #ff66cc; transform:scale(1.05); }
+
+  .premium-request { margin-bottom: 25px; }
 </style>
 
 <!-- Script -->
