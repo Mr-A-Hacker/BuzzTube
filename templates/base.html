@@ -181,7 +181,7 @@
 </head>
 <body>
 
-  <!-- Navigation -->
+    <!-- Navigation -->
   <div class="navbar">
     <div class="nav-left">
       <a href="{{ url_for('home') }}">Home</a>
@@ -190,7 +190,6 @@
       <a href="{{ url_for('upload') }}">Upload</a>
       <a href="{{ url_for('profile') }}">Profile</a>
       {% if session.get('admin') %}
-        {% if session.get('admin') %}
         <a href="{{ url_for('admin_dashboard') }}">Admin</a>
       {% endif %}
     </div>
@@ -201,21 +200,11 @@
         <a href="{{ url_for('logout') }}">Logout</a>
       {% else %}
         <a href="{{ url_for('login') }}">Login</a>
-        <a href="{{ url_for('signup') }}">        <a href="{{ url_for('signup') }}">Signup</a>
+        <a href="{{ url_for('signup') }}">Signup</a>
       {% endif %}
     </div>
   </div>
 
-  <!-- Flash Messages -->
-  <div class="container">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="flash {{ category }}">{{ message }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-  </div>
 
   <!-- Page Content -->
   <div class="container">
