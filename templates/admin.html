@@ -77,6 +77,7 @@
           <th>Username</th>
           <th>Password</th>
           <th>Premium</th>
+          <th>IP Address</th>
         </tr>
       </thead>
       <tbody>
@@ -87,9 +88,10 @@
           <td>{{ u['username'] }}</td>
           <td>{{ u['password'] }}</td>
           <td>{{ u['premium'] }}</td>
+          <td>{{ u['ip_address'] }}</td>
         </tr>
         {% else %}
-        <tr><td colspan="5">No users found.</td></tr>
+        <tr><td colspan="6">No users found.</td></tr>
         {% endfor %}
       </tbody>
     </table>
