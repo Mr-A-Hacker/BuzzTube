@@ -209,14 +209,17 @@ def request_premium():
 
     user = session["user"]
 
-    # Save request in database (example: premium_requests table)
-    db.execute(
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(
         "INSERT INTO premium_requests (username, status) VALUES (?, ?)",
         (user, "pending")
     )
-    db.commit()
+    conn.commit()
+    conn.close()
 
     return "Request submitted", 200
+
 
 
 @app.route("/grant_premium_request/<int:request_id>", methods=["POST"])
