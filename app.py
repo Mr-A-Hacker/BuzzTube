@@ -188,8 +188,8 @@ def signup():
     return render_template("signup.html")
 
 
-@app.route('/grant_premium/<username>', methods=['POST'])
-def grant_premium(username):
+@app.route('/grant_premium_user/<username>', methods=['POST'])
+def grant_premium_user(username):
     conn = get_db()
     cur = conn.cursor()
     cur.execute("UPDATE users SET premium=1 WHERE username=?", (username,))
@@ -200,6 +200,7 @@ def grant_premium(username):
     flash(f"Premium granted to {username}!", "success")
 
     return redirect(url_for('profile', username=username))
+
 
 @app.route("/request_premium", methods=["POST"])
 def request_premium():
@@ -218,13 +219,14 @@ def request_premium():
     return "Request submitted", 200
 
 
-@app.route("/grant_premium/<int:request_id>", methods=["POST"])
-def grant_premium(request_id):
+@app.route("/grant_premium_request/<int:request_id>", methods=["POST"])
+def grant_premium_request(request_id):
     if not session.get("admin"):
         return "Unauthorized", 403
     db.execute("UPDATE premium_requests SET status = ? WHERE id = ?", ("granted", request_id))
     db.commit()
     return redirect(url_for("admin_dashboard"))
+
 
 @app.route("/reject_premium/<int:request_id>", methods=["POST"])
 def reject_premium(request_id):
@@ -233,7 +235,6 @@ def reject_premium(request_id):
     db.execute("UPDATE premium_requests SET status = ? WHERE id = ?", ("rejected", request_id))
     db.commit()
     return redirect(url_for("admin_dashboard"))
-
 
 
 @app.route('/clear_premium_flag')
