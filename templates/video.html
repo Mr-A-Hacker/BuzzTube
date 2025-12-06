@@ -9,10 +9,31 @@
 
     <!-- Video Player -->
     {% if v['filepath'] %}
-      <video controls width="100%" style="border-radius:12px; box-shadow:0 0 20px #6600ff;" preload="metadata">
+      <video id="videoPlayer" width="100%" style="border-radius:12px; box-shadow:0 0 20px #6600ff;" preload="metadata">
         <source src="{{ v['filepath'] }}" type="video/mp4">
         Your browser does not support the video tag.
       </video>
+
+      <!-- Custom Controls -->
+      <div class="actions" style="margin-top:12px;">
+        <button id="startBtn" class="btn">▶️ Start</button>
+        <button id="stopBtn" class="btn danger">⏹ Stop</button>
+      </div>
+
+      <script>
+        const video = document.getElementById("videoPlayer");
+        const startBtn = document.getElementById("startBtn");
+        const stopBtn = document.getElementById("stopBtn");
+
+        startBtn.addEventListener("click", () => {
+          video.play();
+        });
+
+        stopBtn.addEventListener("click", () => {
+          video.pause();
+          video.currentTime = 0; // reset to beginning
+        });
+      </script>
     {% else %}
       <p class="flash warning">No video file available.</p>
     {% endif %}
