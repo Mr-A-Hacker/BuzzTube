@@ -161,4 +161,32 @@
   </div>
 </div>
 
+  <!-- Premium Requests Section -->
+  <div class="card">
+    <h2 class="neon-text">Premium Requests</h2>
+    <ul class="request-list">
+      {% for req in premium_requests %}
+        <li>
+          <strong>{{ req['username'] }}</strong>
+          <span class="meta">Request #{{ req['id'] }} • Status: {{ req['status'] }}</span>
+
+          {% if req['status'] == 'pending' %}
+            <form action="{{ url_for('grant_premium', request_id=req['id']) }}" method="POST" style="display:inline;">
+              <button type="submit" class="btn premium-btn">Grant</button>
+            </form>
+            <form action="{{ url_for('reject_premium', request_id=req['id']) }}" method="POST" style="display:inline;">
+              <button type="submit" class="btn danger">Reject</button>
+            </form>
+          {% elif req['status'] == 'granted' %}
+            <span class="meta">✅ Granted</span>
+          {% elif req['status'] == 'rejected' %}
+            <span class="meta">❌ Rejected</span>
+          {% endif %}
+        </li>
+      {% else %}
+        <li class="meta">No premium requests found.</li>
+      {% endfor %}
+    </ul>
+  </div>
+
 {% endblock %}
