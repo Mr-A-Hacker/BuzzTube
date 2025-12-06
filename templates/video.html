@@ -9,15 +9,19 @@
 
     <!-- Video Player -->
     {% if v['filepath'] %}
-      <video id="videoPlayer" width="100%" style="border-radius:12px; box-shadow:0 0 20px #6600ff;" preload="metadata">
+      <video id="videoPlayer"
+             width="100%"
+             controls
+             preload="metadata"
+             style="border-radius:12px; box-shadow:0 0 20px #6600ff;">
         <source src="{{ v['filepath'] }}" type="video/mp4">
         Your browser does not support the video tag.
       </video>
 
-      <!-- Custom Controls -->
+      <!-- Optional Custom Controls -->
       <div class="actions" style="margin-top:12px;">
-        <button id="startBtn" class="btn">▶️ Start</button>
-        <button id="stopBtn" class="btn danger">⏹ Stop</button>
+        <button id="startBtn" class="btn">▶️ Play</button>
+        <button id="stopBtn" class="btn danger">⏸ Pause</button>
       </div>
 
       <script>
@@ -31,7 +35,7 @@
 
         stopBtn.addEventListener("click", () => {
           video.pause();
-          video.currentTime = 0; // reset to beginning
+          // Removed reset to beginning so it just pauses
         });
       </script>
     {% else %}
