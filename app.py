@@ -1,21 +1,3 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, abort
-import sqlite3, os, time
-from functools import wraps
-import werkzeug
-
-app = Flask(__name__)
-app.secret_key = "supersecretkey"   # replace with env var in production
-DB_FILE = "buzz.db"
-
-UPLOAD_FOLDER = "static/uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-
-def get_db():
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    return conn
-
 def init_db():
     conn = get_db()
     cur = conn.cursor()
@@ -107,6 +89,15 @@ def init_db():
         CREATE TABLE IF NOT EXISTS blocked_ips (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             ip_address TEXT UNIQUE
+        )
+    """)
+
+    # Premium Requests
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS premium_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            status TEXT CHECK(status IN ('pending','granted','rejected')) NOT NULL DEFAULT 'pending'
         )
     """)
 
