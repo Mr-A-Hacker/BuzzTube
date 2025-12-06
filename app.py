@@ -375,6 +375,7 @@ def profile():
     return render_template("profile.html", user=user, videos=videos, subs=subs)
 
 
+
 @app.route("/settings", methods=["GET", "POST"])
 @premium_required
 def settings():
