@@ -385,6 +385,24 @@ def like_video(id):
     return redirect(url_for("video", id=id))
 
 
+
+@app.route("/request_premium", methods=["POST"])
+def request_premium():
+    if "user" not in session:
+        flash("Login required to request premium.", "danger")
+        return redirect(url_for("login"))
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("INSERT INTO premium_requests (username) VALUES (?)", (session["user"],))
+    conn.commit()
+    conn.close()
+
+    flash("Your Premium request has been sent to the admin!", "success")
+    return redirect(url_for("home"))
+
+
+
 @app.route("/follow/<string:username>", methods=["POST"])
 @premium_required
 def follow_user(username):
