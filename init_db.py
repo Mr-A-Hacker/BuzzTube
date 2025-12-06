@@ -1,10 +1,10 @@
 import sqlite3
 
 def init_db():
-    conn = sqlite3.connect("database.db")  # Railway will create this file in container
+    conn = sqlite3.connect("database.db")
     c = conn.cursor()
 
-    # Create Premium Requests table
+    # Premium Requests table
     c.execute("""
     CREATE TABLE IF NOT EXISTS premium_requests (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -16,7 +16,3 @@ def init_db():
     conn.commit()
     conn.close()
     print("✅ premium_requests table ensured.")
-
-# Run automatically when app starts
-if __name__ == "__main__":
-    init_db()
