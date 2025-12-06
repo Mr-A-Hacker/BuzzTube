@@ -1,7 +1,7 @@
 import sqlite3
 
 def init_db():
-    conn = sqlite3.connect("database.db")  # creates/opens database.db in your repo
+    conn = sqlite3.connect("database.db")  # Railway will create this file in container
     c = conn.cursor()
 
     # Create Premium Requests table
@@ -13,21 +13,10 @@ def init_db():
     )
     """)
 
-    # Example: you can add other tables here too
-    # c.execute("""
-    # CREATE TABLE IF NOT EXISTS users (
-    #     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    #     username TEXT NOT NULL,
-    #     email TEXT,
-    #     password TEXT,
-    #     premium INTEGER DEFAULT 0,
-    #     ip_address TEXT
-    # )
-    # """)
-
     conn.commit()
     conn.close()
-    print("Database initialized with premium_requests table.")
+    print("✅ premium_requests table ensured.")
 
+# Run automatically when app starts
 if __name__ == "__main__":
     init_db()
