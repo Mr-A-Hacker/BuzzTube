@@ -117,6 +117,7 @@ def init_db():
 
 # Initialize DB at startup
 init_db()
+
 # Middleware: block requests if IP is in blocked list
 @app.before_request
 def check_ip_block():
@@ -147,6 +148,14 @@ def premium_required(f):
             session.clear()
             flash("Your account no longer exists. Please sign up again.", "danger")
             return redirect(url_for("signup"))
+
+        if user["premium"] != 1:
+            flash("Premium access required.", "danger")
+            return redirect(url_for("upgrade"))
+
+        return f(*args, **kwargs)
+    return decorated_function
+
 
         if user["premium"] == 0:
             start = session.get("login_time", 0)
