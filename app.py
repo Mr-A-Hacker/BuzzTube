@@ -620,6 +620,8 @@ def admin_dashboard():
     messages = cur.fetchall()
     cur.execute("SELECT * FROM blocked_ips")
     blocked_ips = cur.fetchall()
+    cur.execute("SELECT * FROM premium_requests ORDER BY id DESC")
+    premium_requests = cur.fetchall()
     conn.close()
 
     return render_template("admin.html",
@@ -628,7 +630,8 @@ def admin_dashboard():
                            users=users,
                            reports=reports,
                            messages=messages,
-                           blocked_ips=blocked_ips)
+                           blocked_ips=blocked_ips,
+                           premium_requests=premium_requests)
 
 
 @app.route("/admin/delete_video/<int:id>", methods=["POST"])
@@ -738,6 +741,36 @@ def admin_unblock_ip():
     conn.commit()
     conn.close()
     flash(f"Unblocked {ip}", "info")
+    return redirect(url_for("admin_dashboard"))
+
+
+# ✅ NEW: Premium request management
+@app.route("/admin/grant_premium_request/<int:request_id>", methods=["POST"])
+def admin_grant_premium_request(request_id):
+    if not session.get("admin"):
+        return redirect(url_for("home"))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE premium_requests SET status='granted' WHERE id=?", (request_id,))
+    cur.execute("""
+        UPDATE users SET premium=1 
+        WHERE username=(SELECT username FROM premium_requests WHERE id=?)
+    """, (request_id,))
+    conn.commit()
+    conn.close()
+    flash("Premium request granted.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+@app.route("/admin/reject_premium_request/<int:request_id>", methods=["POST"])
+def admin_reject_premium_request(request_id):
+    if not session.get("admin"):
+        return redirect(url_for("home"))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE premium_requests SET status='rejected' WHERE id=?", (request_id,))
+    conn.commit()
+    conn.close()
+    flash("Premium request rejected.", "info")
     return redirect(url_for("admin_dashboard"))
 
 
