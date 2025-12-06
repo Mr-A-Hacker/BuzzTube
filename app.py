@@ -230,7 +230,9 @@ def request_premium():
     conn.commit()
     conn.close()
 
-    return "Request submitted", 200
+    flash("Your premium request has been submitted!", "success")
+    return redirect(url_for("home"))
+
 
 
 
