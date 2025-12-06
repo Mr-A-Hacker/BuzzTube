@@ -178,21 +178,26 @@
 <body>
 
   <!-- Navigation -->
-  <div class="navbar">
-    <div class="nav-left">
-      <a href="{{ url_for('home') }}">Home</a>
-      <a href="{{ url_for('leaderboard') }}">Leaderboard</a>
-      <a href="{{ url_for('publichat') }}">Public Chat</a>
-      <a href="{{ url_for('upload') }}">Upload</a>
-      <a href="{{ url_for('profile') }}">Profile</a>
-      {% if session.get('admin') %}
-        <a href="{{ url_for('admin_dashboard') }}">Admin</a>
-      {% endif %}
-    </div>
-    <div class="nav-right">
-      {% if session.get('user') %}
-        <a href="{{ url_for('settings') }}" class="btn settings-btn">⚙️ Settings</a>
-        <a href="javascript:void(0);" class="btn premium-btn" onclick="openPremium()">🌟 Get Premium</a>
-        <a href="{{ url_for('logout') }}">Logout</a>
-      {% else %}
-        <a
+<div class="navbar">
+  <div class="nav-left">
+    <a href="{{ url_for('home') }}">Home</a>
+    <a href="{{ url_for('leaderboard') }}">Leaderboard</a>
+    <a href="{{ url_for('publichat') }}">Public Chat</a>
+    <a href="{{ url_for('upload') }}">Upload</a>
+    <a href="{{ url_for('profile') }}">Profile</a>
+    {% if session.get('admin') %}
+      <a href="{{ url_for('admin_dashboard') }}">Admin</a>
+    {% endif %}
+  </div>
+  <div class="nav-right">
+    {% if session.get('user') %}
+      <a href="{{ url_for('settings') }}" class="btn settings-btn">⚙️ Settings</a>
+      <a href="javascript:void(0);" class="btn premium-btn" onclick="openPremium()">🌟 Get Premium</a>
+      <a href="{{ url_for('logout') }}">Logout</a>
+    {% else %}
+      <a href="{{ url_for('login') }}">Login</a>
+      <a href="{{ url_for('signup') }}">Signup</a>
+    {% endif %}
+  </div>
+</div>
+
