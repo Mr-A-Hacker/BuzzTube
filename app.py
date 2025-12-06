@@ -213,6 +213,27 @@ def grant_premium_user(username):
 
     return redirect(url_for('profile', username=username))
 
+@app.route("/")
+@premium_required
+def home():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT videos.*, users.premium
+        FROM videos
+        JOIN users ON videos.uploader = users.username
+        ORDER BY videos.id DESC
+    """)
+    videos = cur.fetchall()
+
+    cur.execute("SELECT premium FROM users WHERE username=?", (session["user"],))
+    user = cur.fetchone()
+    premium = user["premium"] if user else 0
+
+    conn.close()
+    return render_template("home.html", videos=videos, premium=premium)
+
+
 
 @app.route("/request_premium", methods=["POST"])
 def request_premium():
