@@ -159,7 +159,6 @@
       {% endfor %}
     </ul>
   </div>
-</div>
 
   <!-- Premium Requests Section -->
   <div class="card">
@@ -171,7 +170,7 @@
           <span class="meta">Request #{{ req['id'] }} • Status: {{ req['status'] }}</span>
 
           {% if req['status'] == 'pending' %}
-            <form action="{{ url_for('grant_premium', request_id=req['id']) }}" method="POST" style="display:inline;">
+            <form action="{{ url_for('grant_premium_request', request_id=req['id']) }}" method="POST" style="display:inline;">
               <button type="submit" class="btn premium-btn">Grant</button>
             </form>
             <form action="{{ url_for('reject_premium', request_id=req['id']) }}" method="POST" style="display:inline;">
@@ -188,5 +187,6 @@
       {% endfor %}
     </ul>
   </div>
+</div>
 
 {% endblock %}
