@@ -1,3 +1,24 @@
+from flask import Flask, render_template, request, redirect, url_for, session, flash, abort
+import sqlite3, os, time
+from functools import wraps
+import werkzeug
+
+# --- Flask app setup ---
+app = Flask(__name__)
+app.secret_key = "supersecretkey"   # ⚠️ replace with env var in production
+DB_FILE = "buzz.db"
+
+# --- Uploads folder setup ---
+UPLOAD_FOLDER = "static/uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+# --- Database helper ---
+def get_db():
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    return conn
+
 def init_db():
     conn = get_db()
     cur = conn.cursor()
@@ -217,8 +238,13 @@ def request_premium():
 def grant_premium_request(request_id):
     if not session.get("admin"):
         return "Unauthorized", 403
-    db.execute("UPDATE premium_requests SET status = ? WHERE id = ?", ("granted", request_id))
-    db.commit()
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE premium_requests SET status = ? WHERE id = ?", ("granted", request_id))
+    conn.commit()
+    conn.close()
+
     return redirect(url_for("admin_dashboard"))
 
 
@@ -226,9 +252,15 @@ def grant_premium_request(request_id):
 def reject_premium(request_id):
     if not session.get("admin"):
         return "Unauthorized", 403
-    db.execute("UPDATE premium_requests SET status = ? WHERE id = ?", ("rejected", request_id))
-    db.commit()
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE premium_requests SET status = ? WHERE id = ?", ("rejected", request_id))
+    conn.commit()
+    conn.close()
+
     return redirect(url_for("admin_dashboard"))
+
 
 
 @app.route('/clear_premium_flag')
