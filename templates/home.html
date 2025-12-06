@@ -26,7 +26,14 @@
         <li class="card three-d-card">
           <!-- Video Title -->
           <h2 class="neon-text three-d-text">{{ v.title }}</h2>
-          <p class="meta">Uploaded by {{ v.uploader }}</p>
+
+          <!-- Uploader with Premium Badge -->
+          <p class="meta">
+            Uploaded by <strong>{{ v.uploader }}</strong>
+            {% if v.premium == 1 %}
+              <span class="premium-badge">★ Premium</span>
+            {% endif %}
+          </p>
 
           <!-- Video Preview -->
           {% if v.filepath %}
@@ -90,6 +97,13 @@
   .neon-input:focus { background:linear-gradient(160deg,#0a0a0a,#151515); border-color:#ff66cc; box-shadow:0 0 30px #ff66cc; transform:scale(1.05); }
 
   .premium-request { margin-bottom: 25px; }
+
+  .premium-badge {
+    color: #ff66cc;
+    font-weight: bold;
+    text-shadow: 0 0 8px #ff33aa, 0 0 16px #ff66cc;
+    margin-left: 8px;
+  }
 </style>
 
 <!-- Script -->
