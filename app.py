@@ -201,6 +201,24 @@ def grant_premium(username):
 
     return redirect(url_for('profile', username=username))
 
+@app.route("/request_premium", methods=["POST"])
+def request_premium():
+    if "user" not in session:
+        return "Unauthorized", 403
+
+    user = session["user"]
+
+    # Save request in database (example: premium_requests table)
+    db.execute(
+        "INSERT INTO premium_requests (username, status) VALUES (?, ?)",
+        (user, "pending")
+    )
+    db.commit()
+
+    return "Request submitted", 200
+
+
+
 @app.route('/clear_premium_flag')
 def clear_premium_flag():
     session.pop('premium_granted', None)
