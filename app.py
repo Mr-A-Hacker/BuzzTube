@@ -186,6 +186,26 @@ def signup():
             conn.close()
     return render_template("signup.html")
 
+@app.route("/request_premium", methods=["POST"])
+def request_premium():
+    if "user" not in session:
+        return "Unauthorized", 403
+
+    user = session["user"]
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO premium_requests (username, status) VALUES (?, ?)",
+        (user, "pending")
+    )
+    conn.commit()
+    conn.close()
+
+    flash("Your premium request has been submitted!", "success")
+    return redirect(url_for("home"))
+
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
