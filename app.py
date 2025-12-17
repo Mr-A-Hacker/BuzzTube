@@ -102,7 +102,20 @@ def init_db():
             ip_address TEXT UNIQUE
         )
     """)
+    # Buzz Shorts
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS shorts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            uploader TEXT NOT NULL,
+            filepath TEXT,
+            caption TEXT,
+            likes INTEGER DEFAULT 0,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
 
+    
     # Premium Requests
     cur.execute("""
         CREATE TABLE IF NOT EXISTS premium_requests (
@@ -205,6 +218,53 @@ def request_premium():
 
     flash("Your premium request has been submitted!", "success")
     return redirect(url_for("home"))
+
+
+@app.route("/shorts")
+def shorts_feed():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM shorts ORDER BY timestamp DESC")
+    shorts = cur.fetchall()
+    conn.close()
+    return render_template("shorts_feed.html", shorts=shorts)
+
+@app.route("/shorts/upload", methods=["GET", "POST"])
+@premium_required
+def upload_short():
+    if request.method == "POST":
+        file = request.files.get("video")
+        caption = request.form.get("caption", "")
+        title = request.form.get("title", "Untitled")
+        uploader = session["user"]
+
+        if file:
+            filename = f"short_{int(time.time())}.mp4"
+            filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            file.save(filepath)
+
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute(
+                "INSERT INTO shorts (title, uploader, filepath, caption) VALUES (?, ?, ?, ?)",
+                (title, uploader, filepath, caption)
+            )
+            conn.commit()
+            conn.close()
+
+            flash("Buzz Short uploaded successfully!", "success")
+            return redirect(url_for("shorts_feed"))
+
+    return render_template("upload_short.html")
+
+@app.route("/shorts/<int:short_id>/like", methods=["POST"])
+def like_short(short_id):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE shorts SET likes = likes + 1 WHERE id=?", (short_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("shorts_feed"))
 
 
 
