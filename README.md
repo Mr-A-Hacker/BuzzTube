@@ -1,3 +1,10 @@
+> ## 👋 Start Here
+> An early video-sharing web project. **For users:** explore the idea of uploading, organizing, and presenting video content through a custom web application.
+>
+> **Safety:** Use security, camera, scanning, and network features only on systems and networks you own or are explicitly authorized to test.
+
+---
+
 # BuzzTube 🎥✨
 
 BuzzTube is a LAN‑only social media simulation built with **Flask** and **SQLite**.  
